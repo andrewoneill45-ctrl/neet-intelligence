@@ -24,14 +24,20 @@ exports.handler = async (event) => {
     const src = process.env.ANTHROPIC_API_KEY ? 'ANTHROPIC_API_KEY' : process.env.VITE_ANTHROPIC_KEY ? 'VITE_ANTHROPIC_KEY' : process.env.ANTHROPIC_KEY ? 'ANTHROPIC_KEY' : null;
     const base = { status: 'ok', keyPresent: !!src, keySource: src, model: MODEL, briefLoaded: !!(brief && brief.national) };
     if (!(event.queryStringParameters && event.queryStringParameters.test) || !KEY) return json(200, base);
-    try {
-      const resp = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST', headers: { 'content-type': 'application/json', 'x-api-key': KEY, 'anthropic-version': '2023-06-01' },
-        body: JSON.stringify({ model: MODEL, max_tokens: 16, messages: [{ role: 'user', content: 'say ok' }] }),
-      });
-      const body = await resp.text();
-      return json(200, { ...base, test_http_status: resp.status, test_ok: resp.ok, test_body: body.slice(0, 500) });
-    } catch (e) { return json(200, { ...base, test_exception: String(e).slice(0, 300) }); }
+    const probe = ['claude-3-5-sonnet-latest', 'claude-3-5-sonnet-20241022', 'claude-3-5-haiku-latest', 'claude-3-5-haiku-20241022', 'claude-3-haiku-20240307', 'claude-3-opus-20240229', 'claude-sonnet-4-20250514'];
+    const results = [];
+    for (const m of probe) {
+      try {
+        const resp = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST', headers: { 'content-type': 'application/json', 'x-api-key': KEY, 'anthropic-version': '2023-06-01' },
+          body: JSON.stringify({ model: m, max_tokens: 8, messages: [{ role: 'user', content: 'ok' }] }),
+        });
+        let errType = '';
+        if (!resp.ok) { try { errType = (JSON.parse(await resp.text()).error || {}).type || ''; } catch { /* */ } }
+        results.push({ model: m, status: resp.status, ok: resp.ok, error: errType });
+      } catch (e) { results.push({ model: m, error: String(e).slice(0, 120) }); }
+    }
+    return json(200, { ...base, probe: results });
   }
   if (event.httpMethod !== 'POST') return json(405, { error: 'method_not_allowed' });
   let question = '';
