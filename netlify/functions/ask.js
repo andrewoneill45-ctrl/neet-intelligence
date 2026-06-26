@@ -3,18 +3,26 @@
 // Optional env var ASK_MODEL (defaults to a fast Claude model).
 const brief = require('./neet-brief.json');
 
-const SYSTEM = `You are the analyst for an Education and Skills roundtable on the NEET (not in education, employment or training) crisis. You answer strictly from the JSON dataset provided below. Rules:
-- Use ONLY the figures in the data. Never invent or estimate numbers that are not present.
-- If the answer is not derivable from the data, say so plainly and suggest what is available.
-- Be concise and direct: lead with the answer and the key figure, then at most two sentences of context.
-- Use British English. No em dashes. Percentages to one decimal place.
-- "NEET or not known" combines confirmed NEET with "activity not known" (a tracking gap). Distinguish them when it matters; a high rate driven by "not known" is a tracking problem, not measured disengagement.
-- "No sustained destination" is the school-level proxy for NEET, from KS4 destination measures (2022/23 cohort).
-- When ranking or comparing places, name them and give their figures.
-- This is for senior policy officials; be rigorous and neutral.
+const DATA = `
 
 DATASET (England; 16-17 NEET is 2025 unless a trend year is given):
 ` + JSON.stringify(brief);
+
+const RULES = `
+- Use ONLY the figures in the data. Never invent or estimate numbers that are not present. If something is not derivable from the data, say so.
+- "NEET or not known" combines confirmed NEET with "activity not known" (a tracking gap); a high rate driven by "not known" is a tracking problem, not measured disengagement. "No sustained destination" is the school-level NEET proxy from KS4 destinations (2022/23).
+- British English. No em dashes. Percentages to one decimal place. This is for senior policy officials: rigorous and neutral.
+FORMATTING (important): Keep it short, roughly 120 to 180 words. Write in plain prose. Do NOT use markdown tables or "#" headings. If you must list places, use at most five bullet points, each one short line ("Blackpool: 8.9%"). Lead with the direct answer.`;
+
+const SYSTEM = `You are the analyst for an Education and Skills roundtable on the NEET (not in education, employment or training) crisis. Answer the user's question strictly from the dataset.` + RULES + DATA;
+
+const IDEA_SYSTEM = `You are a sharp, candid policy analyst stress-testing an idea for an Education and Skills roundtable on the NEET crisis, using the dataset as your evidence base. The user describes a policy idea or "what if". Assess it against the data.
+Structure your answer in four short labelled parts, using bold labels on their own line (not "#" headings):
+**Verdict** — one line: Promising, Mixed, or Weak on the current evidence, with a one-clause reason.
+**What the data says** — 2 to 4 sentences citing specific figures from the dataset that bear on the idea.
+**Who it reaches and risks** — who would benefit, who it would miss, and the main risks or unintended effects.
+**To make it work** — 1 to 2 concrete conditions for success.
+Be honest, including when the data is silent or only partly relevant. Tie back to the real numbers wherever you can.` + RULES + DATA;
 
 exports.handler = async (event) => {
   const KEY = process.env.ANTHROPIC_API_KEY || process.env.VITE_ANTHROPIC_KEY || process.env.ANTHROPIC_KEY;
@@ -40,11 +48,13 @@ exports.handler = async (event) => {
     return json(200, { ...base, probe: results });
   }
   if (event.httpMethod !== 'POST') return json(405, { error: 'method_not_allowed' });
-  let question = '';
-  try { question = (JSON.parse(event.body || '{}').question || '').toString().slice(0, 600); } catch { /* ignore */ }
+  let question = '', mode = 'ask';
+  try { const b = JSON.parse(event.body || '{}'); question = (b.question || '').toString().slice(0, 800); mode = b.mode === 'idea' ? 'idea' : 'ask'; } catch { /* ignore */ }
   if (!question.trim()) return json(400, { error: 'no_question' });
 
   if (!KEY) return json(200, { answer: null, error: 'no_key' });
+  const system = mode === 'idea' ? IDEA_SYSTEM : SYSTEM;
+  const maxTokens = mode === 'idea' ? 900 : 600;
 
   // Try the configured model, then fall back to widely-available models if it is not found for this key.
   const candidates = process.env.ASK_MODEL
@@ -56,7 +66,7 @@ exports.handler = async (event) => {
       const resp = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: { 'content-type': 'application/json', 'x-api-key': KEY, 'anthropic-version': '2023-06-01' },
-        body: JSON.stringify({ model: m, max_tokens: 700, system: SYSTEM, messages: [{ role: 'user', content: question }] }),
+        body: JSON.stringify({ model: m, max_tokens: maxTokens, system, messages: [{ role: 'user', content: question }] }),
       });
       if (resp.ok) {
         const data = await resp.json();

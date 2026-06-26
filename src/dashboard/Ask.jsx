@@ -65,12 +65,59 @@ function matchPreset(q) {
   return 0;
 }
 
+const IDEA_EXAMPLES = ['Mandate Risk-of-NEET screening from Year 7', 'Pause the defunding of BTECs', 'Reform the post-16 maths and English resit rule', 'Make selective sixth-form admissions more inclusive'];
+
+function renderInline(text) {
+  // split on **bold** and render strong
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((p, i) => p.startsWith('**') && p.endsWith('**') ? <strong key={i}>{p.slice(2, -2)}</strong> : <span key={i}>{p}</span>);
+}
+
+function MD({ text }) {
+  const lines = text.split('\n');
+  const blocks = [];
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    if (line.trim() === '') { i++; continue; }
+    // table block
+    if (line.trim().startsWith('|')) {
+      const tbl = [];
+      while (i < lines.length && lines[i].trim().startsWith('|')) { tbl.push(lines[i]); i++; }
+      const rows = tbl.map(r => r.trim().replace(/^\||\|$/g, '').split('|').map(c => c.trim()));
+      const body = rows.filter(r => !r.every(c => /^[-:]*$/.test(c)));
+      const head = body[0] || [];
+      blocks.push(
+        <table className="nd-table" key={'t' + i} style={{ margin: '8px 0' }}>
+          <thead><tr>{head.map((c, j) => <th key={j}>{renderInline(c)}</th>)}</tr></thead>
+          <tbody>{body.slice(1).map((r, ri) => <tr key={ri}>{r.map((c, ci) => <td key={ci}>{renderInline(c)}</td>)}</tr>)}</tbody>
+        </table>
+      );
+      continue;
+    }
+    // heading
+    const h = line.match(/^(#{1,4})\s+(.*)$/);
+    if (h) { blocks.push(<div key={'h' + i} style={{ fontWeight: 800, fontSize: '1rem', margin: '12px 0 4px' }}>{renderInline(h[2])}</div>); i++; continue; }
+    // bullet list
+    if (/^\s*[-*]\s+/.test(line)) {
+      const items = [];
+      while (i < lines.length && /^\s*[-*]\s+/.test(lines[i])) { items.push(lines[i].replace(/^\s*[-*]\s+/, '')); i++; }
+      blocks.push(<ul key={'u' + i} style={{ margin: '6px 0', paddingLeft: 20 }}>{items.map((it, j) => <li key={j} style={{ marginBottom: 3 }}>{renderInline(it)}</li>)}</ul>);
+      continue;
+    }
+    blocks.push(<p key={'p' + i} style={{ margin: '0 0 8px', lineHeight: 1.55 }}>{renderInline(line)}</p>);
+    i++;
+  }
+  return <div style={{ fontSize: '0.95rem', color: '#1e293b' }}>{blocks}</div>;
+}
+
 export default function Ask({ onClose }) {
   const [data, setData] = useState(null);
   const [q, setQ] = useState('');
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [note, setNote] = useState('');
+  const [mode, setMode] = useState('ask');
   const inputRef = useRef();
 
   useEffect(() => { fetch('/neet_dashboard.json?v=' + Date.now()).then(r => r.json()).then(setData); }, []);
@@ -82,16 +129,18 @@ export default function Ask({ onClose }) {
     if (!question.trim() || !data) return;
     setLoading(true); setNote(''); setResult(null);
     try {
-      const r = await fetch('/.netlify/functions/ask', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ question }) });
+      const r = await fetch('/.netlify/functions/ask', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ question, mode }) });
       const j = await r.json();
       if (j && j.answer) { setResult({ text: j.answer }); }
-      else {
+      else if (mode === 'idea') {
+        setNote(j && j.error === 'no_key' ? 'Testing an idea needs the AI layer, which is not configured yet (no API key in Netlify).' : 'The AI layer could not be reached (' + ((j && (j.detail || j.error)) || 'no response') + ').');
+      } else {
         const p = PRESETS[matchPreset(question)]; setResult(p.run(data));
-        if (j && j.error === 'no_key') setNote('The AI layer is not configured yet (no API key set in Netlify), so here is the closest ready-made answer.');
-        else setNote('AI layer error (' + ((j && (j.detail || j.error)) || 'no response') + '). Showing the closest ready-made answer.');
+        setNote(j && j.error === 'no_key' ? 'The AI layer is not configured yet, so here is the closest ready-made answer.' : 'AI layer error (' + ((j && (j.detail || j.error)) || 'no response') + '). Showing the closest ready-made answer.');
       }
     } catch (e) {
-      const p = PRESETS[matchPreset(question)]; setResult(p.run(data)); setNote('Offline: showing the closest ready-made answer.');
+      if (mode === 'idea') setNote('Offline: testing an idea needs the AI layer.');
+      else { const p = PRESETS[matchPreset(question)]; setResult(p.run(data)); setNote('Offline: showing the closest ready-made answer.'); }
     }
     setLoading(false);
   };
@@ -105,30 +154,38 @@ export default function Ask({ onClose }) {
           <button onClick={onClose} style={{ marginLeft: 'auto', border: 0, background: '#f1f5f9', borderRadius: 8, width: 30, height: 30, cursor: 'pointer', color: '#475569' }}>✕</button>
         </div>
         <div style={{ padding: '18px 22px' }}>
+          <div style={{ display: 'inline-flex', background: '#f1f5f9', borderRadius: 10, padding: 3, marginBottom: 14 }}>
+            {[['ask', 'Ask a question'], ['idea', 'Test an idea']].map(([k, l]) => (
+              <button key={k} onClick={() => { setMode(k); setResult(null); setNote(''); }} style={{ border: 0, background: mode === k ? '#0f2440' : 'transparent', color: mode === k ? '#fff' : '#475569', fontFamily: 'inherit', fontWeight: 700, fontSize: '0.82rem', padding: '6px 14px', borderRadius: 8, cursor: 'pointer' }}>{l}</button>
+            ))}
+          </div>
           <form onSubmit={e => { e.preventDefault(); askFree(q); }} style={{ display: 'flex', gap: 8 }}>
-            <input ref={inputRef} value={q} onChange={e => setQ(e.target.value)} placeholder="e.g. which coastal authorities track young people worst?"
+            <input ref={inputRef} value={q} onChange={e => setQ(e.target.value)} placeholder={mode === 'idea' ? 'Describe an idea, e.g. mandate Risk-of-NEET screening from Year 7' : 'e.g. which coastal authorities track young people worst?'}
               style={{ flex: 1, padding: '11px 14px', borderRadius: 10, border: '1px solid #cbd5e1', fontSize: '0.92rem', fontFamily: 'inherit' }} />
-            <button type="submit" disabled={loading} style={{ padding: '0 18px', borderRadius: 10, border: 0, background: '#0f2440', color: '#fff', fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' }}>{loading ? '…' : 'Ask'}</button>
+            <button type="submit" disabled={loading} style={{ padding: '0 18px', borderRadius: 10, border: 0, background: '#0f2440', color: '#fff', fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' }}>{loading ? '…' : mode === 'idea' ? 'Test' : 'Ask'}</button>
           </form>
 
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginTop: 14 }}>
-            {PRESETS.map((p, i) => <button key={i} onClick={() => runPreset(i)} className="nd-chip" style={{ cursor: 'pointer' }}>{p.label}</button>)}
+          {mode === 'idea' && <p style={{ margin: '12px 0 4px', fontSize: '0.82rem', color: '#64748b' }}>Describe a policy idea or "what if". It returns a verdict, what the data says, who it reaches and the risks, and what it would take to work.</p>}
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginTop: mode === 'idea' ? 6 : 14 }}>
+            {mode === 'idea'
+              ? IDEA_EXAMPLES.map((ex, i) => <button key={i} onClick={() => { setQ(ex); askFree(ex); }} className="nd-chip" style={{ cursor: 'pointer' }}>{ex}</button>)
+              : PRESETS.map((p, i) => <button key={i} onClick={() => runPreset(i)} className="nd-chip" style={{ cursor: 'pointer' }}>{p.label}</button>)}
           </div>
 
           {note && <div style={{ marginTop: 16, fontSize: '0.8rem', color: '#9a3412', background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 8, padding: '8px 12px' }}>{note}</div>}
+          {loading && <div style={{ marginTop: 16, fontSize: '0.85rem', color: '#64748b' }}>{mode === 'idea' ? 'Testing the idea against the data…' : 'Thinking…'}</div>}
 
           {result && (
             <div style={{ marginTop: 18, borderTop: '1px solid #f1f5f9', paddingTop: 16 }}>
-              {result.text.split('\n').filter(Boolean).map((para, i) => (
-                <p key={i} style={{ margin: '0 0 8px', fontSize: '0.95rem', lineHeight: 1.55, color: '#1e293b' }}>{para}</p>
-              ))}
+              <MD text={result.text} />
               {result.bars && <div style={{ marginTop: 12 }}><RankedBars data={result.bars} labelWidth={170} max={Math.max(...result.bars.map(b => b.value)) * 1.05} /></div>}
               {result.trend && <div style={{ marginTop: 12, maxWidth: 520 }}><TrendLine series={result.trend} color={COL.crimson} /></div>}
             </div>
           )}
 
-          {!result && !loading && (
-            <p style={{ marginTop: 18, fontSize: '0.85rem', color: '#94a3b8', lineHeight: 1.5 }}>Pick a question above for an instant, sourced answer, or type your own. Typed questions use the AI layer when configured, and fall back to the closest ready-made answer otherwise.</p>
+          {!result && !loading && !note && (
+            <p style={{ marginTop: 18, fontSize: '0.85rem', color: '#94a3b8', lineHeight: 1.5 }}>{mode === 'idea' ? 'Pick an example above or describe your own idea to stress-test it against the data.' : 'Pick a question above for an instant, sourced answer, or type your own.'}</p>
           )}
         </div>
       </div>
