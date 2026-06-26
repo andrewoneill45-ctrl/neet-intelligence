@@ -38,7 +38,7 @@ export default function Root() {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
           Ask the data
         </button>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2, marginLeft: 12, lineHeight: 1 }}>
+        <div className="nd-cred" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2, marginLeft: 12, lineHeight: 1 }}>
           <span className="nd-tag" style={{ margin: 0 }}>Education &amp; Skills Sprint</span>
           <span style={{ fontSize: '0.62rem', fontStyle: 'italic', color: '#93b4dd' }}>{"Built by Andrew O'Neill"}</span>
         </div>

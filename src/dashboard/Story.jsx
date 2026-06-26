@@ -72,7 +72,7 @@ export default function Story({ onClose }) {
         <div style={{ maxWidth: 1000, width: '100%' }}>
           <div style={{ fontSize: '0.82rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#ef6b8a' }}>{s.tag}</div>
           <h1 style={{ fontSize: '2.1rem', fontWeight: 800, letterSpacing: '-0.02em', margin: '6px 0 18px', lineHeight: 1.12 }}>{s.title}</h1>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.1fr', gap: 28, alignItems: 'center' }}>
+          <div className="nd-story-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1.1fr', gap: 28, alignItems: 'center' }}>
             <p style={{ fontSize: '1.12rem', lineHeight: 1.6, color: '#dbe4ef' }}>{d ? s.text(d, q) : 'Loading…'}</p>
             <div style={{ background: '#fff', borderRadius: 14, padding: '16px 18px', color: '#0f172a' }}>{d ? s.chart(d, q) : null}</div>
           </div>

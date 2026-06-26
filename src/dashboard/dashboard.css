@@ -91,4 +91,41 @@
 .nd-pulse { animation: nd-pulse-kf 1.4s ease-in-out infinite; }
 
 svg.nd-chart text { font-family: 'Source Sans 3', sans-serif; }
-@media (max-width: 760px){ .nd-claim{grid-template-columns:1fr;} .nd-contrast{grid-template-columns:1fr;} }
+
+/* ============ Mobile / iPhone (does not affect desktop) ============ */
+@media (max-width: 760px) {
+  /* stack every multi-column layout */
+  .nd-grid { grid-template-columns: 1fr !important; }
+  .nd-stats { grid-template-columns: 1fr 1fr !important; }
+  .nd-claim { grid-template-columns: 1fr; }
+  .nd-contrast { grid-template-columns: 1fr; }
+  .nd-story-grid { grid-template-columns: 1fr !important; gap: 16px !important; }
+
+  /* page chrome */
+  .nd-page { padding: 16px 14px 72px; }
+  .nd-h1 { font-size: 1.4rem; }
+  .nd-h2 { font-size: 1.02rem; }
+  .nd-sub { font-size: 0.9rem; }
+  .nd-card { padding: 14px 14px; overflow-x: auto; }
+
+  /* navigation: compact, tabs scroll horizontally */
+  .nd-nav { padding: 0 10px; height: 50px; gap: 2px; }
+  .nd-brand { font-size: 0.92rem; margin-right: 8px; }
+  .nd-cred { display: none; }
+  .nd-tab { font-size: 0.82rem; padding: 7px 11px; }
+  .nd-present-btn { padding: 7px 10px; }
+  .nd-ask-btn { padding: 7px 11px; margin-left: 6px; }
+
+  /* tables scroll sideways rather than overflow */
+  .nd-table { font-size: 0.78rem; }
+  .nd-bar-row { grid-template-columns: 110px 1fr 48px !important; font-size: 0.78rem; }
+
+  /* the LA detail drawer fills the screen */
+  .nd-page-inner { max-width: 100%; }
+}
+
+@media (max-width: 480px) {
+  .nd-stats { grid-template-columns: 1fr !important; }
+  .nd-h1 { font-size: 1.28rem; }
+  .nd-present-btn span, .nd-ask-btn span { display: inline; }
+}
