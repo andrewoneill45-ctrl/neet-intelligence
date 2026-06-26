@@ -17,12 +17,21 @@ DATASET (England; 16-17 NEET is 2025 unless a trend year is given):
 ` + JSON.stringify(brief);
 
 exports.handler = async (event) => {
-  // Health check: GET reports whether the function can see a key, without revealing it.
+  const KEY = process.env.ANTHROPIC_API_KEY || process.env.VITE_ANTHROPIC_KEY || process.env.ANTHROPIC_KEY;
+  const MODEL = process.env.ASK_MODEL || 'claude-sonnet-4-20250514';
+  // Health check (GET): reports whether the function can see a key. Add ?test=1 to make a tiny live call.
   if (event.httpMethod === 'GET') {
-    const src = process.env.ANTHROPIC_API_KEY ? 'ANTHROPIC_API_KEY'
-      : process.env.VITE_ANTHROPIC_KEY ? 'VITE_ANTHROPIC_KEY'
-      : process.env.ANTHROPIC_KEY ? 'ANTHROPIC_KEY' : null;
-    return json(200, { status: 'ok', keyPresent: !!src, keySource: src, model: process.env.ASK_MODEL || 'claude-sonnet-4-20250514', briefLoaded: !!(brief && brief.national) });
+    const src = process.env.ANTHROPIC_API_KEY ? 'ANTHROPIC_API_KEY' : process.env.VITE_ANTHROPIC_KEY ? 'VITE_ANTHROPIC_KEY' : process.env.ANTHROPIC_KEY ? 'ANTHROPIC_KEY' : null;
+    const base = { status: 'ok', keyPresent: !!src, keySource: src, model: MODEL, briefLoaded: !!(brief && brief.national) };
+    if (!(event.queryStringParameters && event.queryStringParameters.test) || !KEY) return json(200, base);
+    try {
+      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST', headers: { 'content-type': 'application/json', 'x-api-key': KEY, 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({ model: MODEL, max_tokens: 16, messages: [{ role: 'user', content: 'say ok' }] }),
+      });
+      const body = await resp.text();
+      return json(200, { ...base, test_http_status: resp.status, test_ok: resp.ok, test_body: body.slice(0, 500) });
+    } catch (e) { return json(200, { ...base, test_exception: String(e).slice(0, 300) }); }
   }
   if (event.httpMethod !== 'POST') return json(405, { error: 'method_not_allowed' });
   let question = '';
