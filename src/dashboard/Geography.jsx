@@ -41,8 +41,11 @@ function GeoMap({ las, metric, onSelect }) {
   );
 }
 
-function LaDrawer({ la, onClose }) {
+const drawerBtn = { flex: 1, border: '1px solid #cbd5e1', background: '#fff', borderRadius: 9, padding: '8px 10px', fontFamily: 'inherit', fontSize: '0.8rem', fontWeight: 700, color: '#0f2440', cursor: 'pointer' };
+
+function LaDrawer({ la, onClose, onPin, jumpToMap, pinned }) {
   if (!la) return null;
+  const isPinned = pinned && pinned.find(p => p.name === la.name);
   const send = la.send || {};
   const sendBars = [['No SEN', send.noSEN], ['SEN support', send.senSupport], ['EHC plan', send.ehcp]].filter(x => x[1] != null);
   const sendMax = Math.max(8, ...sendBars.map(x => x[1])) * 1.05;
@@ -54,6 +57,10 @@ function LaDrawer({ la, onClose }) {
           <div style={{ fontSize: '0.82rem', color: '#64748b' }}>{la.region}{la.ne ? ' · North East' : ''}{la.coastal ? ' · Coastal' : ''}</div>
         </div>
         <button onClick={onClose} style={{ border: 0, background: '#f1f5f9', borderRadius: 8, width: 30, height: 30, cursor: 'pointer', fontSize: '1rem', color: '#475569' }}>✕</button>
+      </div>
+      <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+        <button style={drawerBtn} onClick={() => jumpToMap && jumpToMap(la.name)}>View schools on map</button>
+        <button style={{ ...drawerBtn, opacity: isPinned ? 0.5 : 1 }} disabled={isPinned} onClick={() => onPin && onPin(la)}>{isPinned ? 'Pinned' : 'Add to compare'}</button>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, margin: '16px 0' }}>
         {[['NEET / NK', la.neetnk, COL.crimson], ['NEET', la.neet, COL.amber], ['Not known', la.nk, COL.slate]].map(([l, v, c]) => (
@@ -84,10 +91,55 @@ const FILTERS = [
   { k: 'milburn', label: 'Milburn named' },
 ];
 
-export default function Geography({ data }) {
+function WhatIf({ las }) {
+  const [target, setTarget] = useState(5);
+  const total = las.reduce((s, l) => s + (l.cohort || 0), 0);
+  const curNK = las.reduce((s, l) => s + (l.nk / 100) * (l.cohort || 0), 0);
+  const curNEET = las.reduce((s, l) => s + (l.neet / 100) * (l.cohort || 0), 0);
+  const newNK = las.reduce((s, l) => s + (Math.min(l.nk, target) / 100) * (l.cohort || 0), 0);
+  const recovered = Math.round(curNK - newNK);
+  const above = las.filter(l => l.nk > target).length;
+  const curC = (curNK + curNEET) / total * 100, newC = (newNK + curNEET) / total * 100;
+  return (
+    <div className="nd-card" style={{ marginTop: 16 }}>
+      <div className="nd-card-title">What if every authority tracked young people well?</div>
+      <div className="nd-card-desc">Drag to cap each authority's "activity not known" rate. This is the lever the data most clearly supports: better tracking, not just lower true NEET.</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, margin: '8px 0 14px', flexWrap: 'wrap' }}>
+        <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#475569' }}>Cap not-known at</span>
+        <input type="range" min="0" max="15" step="0.5" value={target} onChange={e => setTarget(parseFloat(e.target.value))} style={{ flex: 1, minWidth: 180, accentColor: '#b91c4a' }} />
+        <span style={{ fontWeight: 800, fontSize: '1.1rem', color: '#b91c4a', minWidth: 54 }}>{fmt1(target)}%</span>
+      </div>
+      <div className="nd-stats" style={{ gridTemplateColumns: 'repeat(3,1fr)' }}>
+        <div className="nd-stat"><div className="accent" style={{ background: COL.green }} /><div className="v" style={{ color: COL.green }}>{recovered.toLocaleString('en-GB')}</div><div className="l">young people brought into view</div><div className="s">{above} authorities currently above the cap</div></div>
+        <div className="nd-stat"><div className="accent" style={{ background: COL.amber }} /><div className="v" style={{ color: COL.amber }}>{pct((newNK / total) * 100)}</div><div className="l">national not-known</div><div className="s">down from {pct((curNK / total) * 100)}</div></div>
+        <div className="nd-stat"><div className="accent" style={{ background: COL.crimson }} /><div className="v" style={{ color: COL.crimson }}>{pct(newC)}</div><div className="l">national NEET or not known</div><div className="s">down from {pct(curC)}</div></div>
+      </div>
+      <p className="nd-note">Illustrative: it assumes capping does not change confirmed NEET, only the tracking gap. It shows how much of the headline is a data problem we could fix.</p>
+    </div>
+  );
+}
+
+function CompareStrip({ items, onRemove }) {
+  if (!items.length) return null;
+  const rows = [['NEET or not known', l => pct(l.neetnk)], ['Confirmed NEET', l => pct(l.neet)], ['Not known', l => pct(l.nk)], ['Cohort', l => fmt0(l.cohort)], ['Year change (ppts)', l => l.annual_change == null ? '–' : (l.annual_change > 0 ? '+' : '') + fmt1(l.annual_change)], ['EHC plan NEET/NK', l => l.send && l.send.ehcp != null ? pct(l.send.ehcp) : '–']];
+  return (
+    <div className="nd-card" style={{ marginTop: 16 }}>
+      <div className="nd-card-title">Comparing {items.length} {items.length === 1 ? 'authority' : 'authorities'}</div>
+      <table className="nd-table" style={{ marginTop: 8 }}>
+        <thead><tr><th></th>{items.map(l => <th key={l.name} className="num">{l.name} <span onClick={() => onRemove(l.name)} style={{ cursor: 'pointer', color: '#cbd5e1' }}>✕</span></th>)}</tr></thead>
+        <tbody>{rows.map(([label, fn]) => <tr key={label}><td style={{ fontWeight: 600 }}>{label}</td>{items.map(l => <td key={l.name} className="num">{fn(l)}</td>)}</tr>)}</tbody>
+      </table>
+    </div>
+  );
+}
+
+export default function Geography({ data, jumpToMap }) {
   const [filter, setFilter] = useState('all');
   const [metric, setMetric] = useState('neetnk');
   const [selectedLa, setSelectedLa] = useState(null);
+  const [pinned, setPinned] = useState([]);
+  const pin = (la) => setPinned(p => (p.find(x => x.name === la.name) || p.length >= 3) ? p : [...p, la]);
+  const unpin = (name) => setPinned(p => p.filter(x => x.name !== name));
   const byName = useMemo(() => Object.fromEntries(data.las.map(l => [l.name, l])), [data.las]);
 
   const las = useMemo(() => data.las.filter(l =>
@@ -144,6 +196,9 @@ export default function Geography({ data }) {
         </div>
       </div>
 
+      <WhatIf las={data.las} />
+      <CompareStrip items={pinned} onRemove={unpin} />
+
       <h2 className="nd-h2">Every authority</h2>
       <div className="nd-chips">
         {FILTERS.map(f => <button key={f.k} className={'nd-chip' + (filter === f.k ? ' active' : '')} onClick={() => setFilter(f.k)}>{f.label}</button>)}
@@ -153,7 +208,7 @@ export default function Geography({ data }) {
         <SortTable cols={cols} rows={las} initialSort="neetnk" onRowClick={setSelectedLa} />
       </div>
 
-      <LaDrawer la={selectedLa} onClose={() => setSelectedLa(null)} />
+      <LaDrawer la={selectedLa} onClose={() => setSelectedLa(null)} onPin={pin} jumpToMap={jumpToMap} pinned={pinned} />
       <p className="nd-note">Source: DfE, Participation and NEET age 16 to 17 by local authority, 2024/25 (figures are an average of Dec 2024 to Feb 2025). Coastal is an indicative list of coastal upper-tier authorities for discussion, not an official classification. Tendring/Clacton sit within Essex and Rhyl within Wales, so are not separately shown.</p>
     </div>
   );

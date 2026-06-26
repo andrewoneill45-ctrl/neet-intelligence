@@ -141,7 +141,7 @@ const HM = ({ label, value, big, color }) => (
 );
 
 /* ─── Main App ─────────────────────────────────── */
-const App = () => {
+const App = ({ initialQuery }) => {
   const mapRef = useRef(null);
   const logout = useLogout();
   const [loading, setLoading] = useState(true);
@@ -303,6 +303,12 @@ const App = () => {
   const openProfileFromHover = useCallback(() => {
     if (hoveredSchool) { setSelectedSchool(hoveredSchool); setHoveredSchool(null); }
   }, [hoveredSchool]);
+
+  // Cross-link from the dashboard: focus the map on an incoming query (e.g. a local authority).
+  useEffect(() => {
+    if (initialQuery && initialQuery.q && schoolsData.length) handleSearch(initialQuery.q);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialQuery, schoolsData.length]);
 
   const ofstedColors = { Outstanding: '#0d7a42', Good: '#1d5a9e', 'Requires improvement': '#e8920e', Inadequate: '#cc3333' };
   const ofstedOrder = ['Outstanding', 'Good', 'Requires improvement', 'Inadequate'];

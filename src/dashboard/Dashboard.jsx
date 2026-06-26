@@ -6,7 +6,7 @@ import SendDisadvantage from './SendDisadvantage';
 import Qualifications from './Qualifications';
 import MilburnLens from './MilburnLens';
 
-export default function Dashboard({ view, go }) {
+export default function Dashboard({ view, go, jumpToMap }) {
   const [data, setData] = useState(null);
   const [err, setErr] = useState(null);
 
@@ -18,5 +18,5 @@ export default function Dashboard({ view, go }) {
   if (!data) return <div className="nd-page"><div className="nd-page-inner" style={{ color: '#64748b', paddingTop: 40 }}>Loading NEET data…</div></div>;
 
   const Page = { overview: Overview, geography: Geography, admissions: Admissions, send: SendDisadvantage, qualifications: Qualifications, milburn: MilburnLens }[view] || Overview;
-  return <div className="nd-page"><Page data={data} go={go} /></div>;
+  return <div className="nd-page"><Page data={data} go={go} jumpToMap={jumpToMap} /></div>;
 }

@@ -9,7 +9,9 @@
 .nd-tab { background: transparent; border: 0; color: #cbd5e1; font-family: inherit; font-size: 0.86rem; font-weight: 600; padding: 8px 13px; border-radius: 8px; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
 .nd-tab:hover { background: rgba(255,255,255,0.08); color: #fff; }
 .nd-tab.active { background: #fff; color: #0f2440; }
-.nd-ask-btn { margin-left: auto; display: flex; align-items: center; gap: 7px; background: #ef4444; color: #fff; border: 0; font-family: inherit; font-size: 0.84rem; font-weight: 700; padding: 8px 14px; border-radius: 9px; cursor: pointer; white-space: nowrap; transition: background 0.15s; }
+.nd-present-btn { margin-left: auto; display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.12); color: #fff; border: 0; font-family: inherit; font-size: 0.84rem; font-weight: 700; padding: 8px 13px; border-radius: 9px; cursor: pointer; white-space: nowrap; transition: background 0.15s; }
+.nd-present-btn:hover { background: rgba(255,255,255,0.22); }
+.nd-ask-btn { display: flex; align-items: center; gap: 7px; background: #ef4444; color: #fff; border: 0; font-family: inherit; font-size: 0.84rem; font-weight: 700; padding: 8px 14px; border-radius: 9px; cursor: pointer; white-space: nowrap; transition: background 0.15s; margin-left: 8px; }
 .nd-ask-btn:hover { background: #dc2626; }
 .nd-tag { font-size: 0.7rem; font-weight: 700; background: rgba(255,255,255,0.12); padding: 4px 10px; border-radius: 99px; color: #e2e8f0; white-space: nowrap; margin-left: 12px; }
 
