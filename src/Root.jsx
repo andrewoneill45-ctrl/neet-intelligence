@@ -19,13 +19,15 @@ export default function Root() {
   const [view, setView] = useState('overview');
   const [showAsk, setShowAsk] = useState(false);
   const [showStory, setShowStory] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [mapQuery, setMapQuery] = useState(null);
   const jumpToMap = (query) => { setMapQuery({ q: query, t: Date.now() }); setView('map'); };
+  const pick = (k) => { setView(k); setMenuOpen(false); };
   return (
     <div className="nd-root">
       <div className="nd-nav">
         <span className="nd-brand"><span className="dot" />NEET Intelligence</span>
-        <div className="nd-tabs">
+        <div className="nd-tabs nd-tabs-desktop">
           {TABS.map(t => (
             <button key={t.k} className={'nd-tab' + (view === t.k ? ' active' : '')} onClick={() => setView(t.k)}>{t.label}</button>
           ))}
@@ -38,11 +40,27 @@ export default function Root() {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
           Ask the data
         </button>
-        <div className="nd-cred" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2, marginLeft: 12, lineHeight: 1 }}>
+        <div className="nd-cred">
           <span className="nd-tag" style={{ margin: 0 }}>Education &amp; Skills Sprint</span>
-          <span style={{ fontSize: '0.62rem', fontStyle: 'italic', color: '#93b4dd' }}>{"Built by Andrew O'Neill"}</span>
+          <span className="nd-cred-by">{"Built by Andrew O'Neill"}</span>
         </div>
+        <button className="nd-menu-btn" aria-label="Menu" onClick={() => setMenuOpen(o => !o)}>
+          {menuOpen
+            ? <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M6 6l12 12M18 6L6 18" /></svg>
+            : <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M4 7h16M4 12h16M4 17h16" /></svg>}
+        </button>
       </div>
+      {menuOpen && (
+        <div className="nd-mobile-menu">
+          {TABS.map(t => (
+            <button key={t.k} className={'nd-mob-item' + (view === t.k ? ' active' : '')} onClick={() => pick(t.k)}>{t.label}</button>
+          ))}
+          <div className="nd-mob-sep" />
+          <button className="nd-mob-item" onClick={() => { setShowStory(true); setMenuOpen(false); }}>▶ Present mode</button>
+          <button className="nd-mob-item" onClick={() => { setShowAsk(true); setMenuOpen(false); }}>Ask the data</button>
+          <div className="nd-mob-cred">{"Built by Andrew O'Neill"}</div>
+        </div>
+      )}
       <div className="nd-content">
         {view === 'map' ? <App initialQuery={mapQuery} /> : <Dashboard view={view} go={setView} jumpToMap={jumpToMap} />}
       </div>

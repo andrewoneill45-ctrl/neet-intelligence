@@ -13,7 +13,22 @@
 .nd-present-btn:hover { background: rgba(255,255,255,0.22); }
 .nd-ask-btn { display: flex; align-items: center; gap: 7px; background: #ef4444; color: #fff; border: 0; font-family: inherit; font-size: 0.84rem; font-weight: 700; padding: 8px 14px; border-radius: 9px; cursor: pointer; white-space: nowrap; transition: background 0.15s; margin-left: 8px; }
 .nd-ask-btn:hover { background: #dc2626; }
-.nd-tag { font-size: 0.7rem; font-weight: 700; background: rgba(255,255,255,0.12); padding: 4px 10px; border-radius: 99px; color: #e2e8f0; white-space: nowrap; margin-left: 12px; }
+.nd-tag { font-size: 0.7rem; font-weight: 700; background: rgba(255,255,255,0.12); padding: 4px 10px; border-radius: 99px; color: #e2e8f0; white-space: nowrap; }
+.nd-cred { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; margin-left: 12px; line-height: 1; }
+.nd-cred-by { font-size: 0.62rem; font-style: italic; color: #93b4dd; white-space: nowrap; }
+
+/* Hamburger menu (mobile only) */
+.nd-menu-btn { display: none; }
+.nd-mobile-menu { display: none; }
+.nd-cred { display: flex; flex-direction: column; align-items: center; gap: 2px; margin-left: 12px; line-height: 1.1; }
+.nd-cred-by { font-size: 0.62rem; font-style: italic; color: #93b4dd; text-align: center; }
+.nd-menu-btn { display: none; background: transparent; border: 0; color: #fff; cursor: pointer; padding: 6px; border-radius: 8px; align-items: center; }
+.nd-menu-btn:hover { background: rgba(255,255,255,0.12); }
+.nd-mobile-menu { position: absolute; top: 50px; left: 0; right: 0; background: #0f2440; border-top: 1px solid rgba(255,255,255,0.12); display: flex; flex-direction: column; padding: 8px; z-index: 30; box-shadow: 0 14px 34px rgba(0,0,0,0.32); max-height: calc(100vh - 50px); overflow-y: auto; }
+.nd-mob-item { width: 100%; text-align: left; background: transparent; border: 0; color: #dbe4ef; font-family: inherit; font-size: 0.98rem; font-weight: 600; padding: 13px 16px; border-radius: 8px; cursor: pointer; }
+.nd-mob-item.active { background: #fff; color: #0f2440; }
+.nd-mob-cred { color: #93b4dd; font-style: italic; font-size: 0.72rem; padding: 12px 16px 6px; }
+@media (min-width: 761px) { .nd-mobile-menu { display: none; } }
 
 /* Page scroll area */
 .nd-content { flex: 1; position: relative; min-height: 0; display: flex; flex-direction: column; }
@@ -108,13 +123,17 @@ svg.nd-chart text { font-family: 'Source Sans 3', sans-serif; }
   .nd-sub { font-size: 0.9rem; }
   .nd-card { padding: 14px 14px; overflow-x: auto; }
 
-  /* navigation: compact, tabs scroll horizontally */
-  .nd-nav { padding: 0 10px; height: 50px; gap: 2px; }
-  .nd-brand { font-size: 0.92rem; margin-right: 8px; }
-  .nd-cred { display: none; }
-  .nd-tab { font-size: 0.82rem; padding: 7px 11px; }
-  .nd-present-btn { padding: 7px 10px; }
-  .nd-ask-btn { padding: 7px 11px; margin-left: 6px; }
+  /* navigation: hamburger menu replaces the tab bar */
+  .nd-nav { padding: 0 12px; height: 50px; gap: 2px; }
+  .nd-brand { font-size: 0.95rem; margin-right: 8px; }
+  .nd-tabs-desktop, .nd-present-btn, .nd-ask-btn, .nd-cred { display: none; }
+  .nd-menu-btn { display: flex; align-items: center; justify-content: center; margin-left: auto; background: transparent; border: 0; color: #fff; cursor: pointer; padding: 6px; border-radius: 8px; }
+  .nd-menu-btn:active { background: rgba(255,255,255,0.15); }
+  .nd-mobile-menu { display: flex; flex-direction: column; gap: 2px; position: absolute; top: 50px; left: 0; right: 0; background: #0f2440; z-index: 1500; padding: 8px; box-shadow: 0 14px 34px rgba(0,0,0,0.35); max-height: calc(100% - 50px); overflow-y: auto; }
+  .nd-mob-item { text-align: left; background: transparent; border: 0; color: #e2e8f0; font-family: inherit; font-size: 0.98rem; font-weight: 600; padding: 13px 14px; border-radius: 9px; cursor: pointer; }
+  .nd-mob-item.active { background: #fff; color: #0f2440; }
+  .nd-mob-sep { height: 1px; background: rgba(255,255,255,0.12); margin: 6px 8px; }
+  .nd-mob-cred { padding: 12px 14px 6px; font-size: 0.74rem; font-style: italic; color: #93b4dd; }
 
   /* tables scroll sideways rather than overflow */
   .nd-table { font-size: 0.78rem; }
