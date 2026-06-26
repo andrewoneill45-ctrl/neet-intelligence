@@ -10,6 +10,7 @@ const TABS = [
   { k: 'geography', label: 'Geography' },
   { k: 'admissions', label: 'Admissions' },
   { k: 'send', label: 'SEND & Disadvantage' },
+  { k: 'qualifications', label: 'Qualifications' },
   { k: 'milburn', label: 'Milburn Lens' },
 ];
 
