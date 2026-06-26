@@ -18,7 +18,7 @@ DATASET (England; 16-17 NEET is 2025 unless a trend year is given):
 
 exports.handler = async (event) => {
   const KEY = process.env.ANTHROPIC_API_KEY || process.env.VITE_ANTHROPIC_KEY || process.env.ANTHROPIC_KEY;
-  const MODEL = process.env.ASK_MODEL || 'claude-sonnet-4-20250514';
+  const MODEL = process.env.ASK_MODEL || 'claude-3-5-sonnet-latest';
   // Health check (GET): reports whether the function can see a key. Add ?test=1 to make a tiny live call.
   if (event.httpMethod === 'GET') {
     const src = process.env.ANTHROPIC_API_KEY ? 'ANTHROPIC_API_KEY' : process.env.VITE_ANTHROPIC_KEY ? 'VITE_ANTHROPIC_KEY' : process.env.ANTHROPIC_KEY ? 'ANTHROPIC_KEY' : null;
@@ -38,30 +38,33 @@ exports.handler = async (event) => {
   try { question = (JSON.parse(event.body || '{}').question || '').toString().slice(0, 600); } catch { /* ignore */ }
   if (!question.trim()) return json(400, { error: 'no_question' });
 
-  // Accept any of the common key names so an existing key can be reused.
-  const key = process.env.ANTHROPIC_API_KEY || process.env.VITE_ANTHROPIC_KEY || process.env.ANTHROPIC_KEY;
-  if (!key) return json(200, { answer: null, error: 'no_key' });
+  if (!KEY) return json(200, { answer: null, error: 'no_key' });
 
-  const model = process.env.ASK_MODEL || 'claude-sonnet-4-20250514';
-  try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({
-        model, max_tokens: 700, system: SYSTEM,
-        messages: [{ role: 'user', content: question }],
-      }),
-    });
-    if (!resp.ok) {
-      const t = await resp.text();
-      return json(200, { answer: null, error: 'api_error', detail: t.slice(0, 300) });
+  // Try the configured model, then fall back to widely-available models if it is not found for this key.
+  const candidates = process.env.ASK_MODEL
+    ? [process.env.ASK_MODEL]
+    : ['claude-3-5-sonnet-latest', 'claude-3-5-haiku-latest', 'claude-3-haiku-20240307'];
+  let lastDetail = '';
+  for (const m of candidates) {
+    try {
+      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-api-key': KEY, 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({ model: m, max_tokens: 700, system: SYSTEM, messages: [{ role: 'user', content: question }] }),
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        const answer = (data.content || []).filter(c => c.type === 'text').map(c => c.text).join('\n').trim();
+        return json(200, { answer, model: m });
+      }
+      lastDetail = (await resp.text()).slice(0, 300);
+      if (resp.status !== 404) return json(200, { answer: null, error: 'api_error', detail: lastDetail });
+      // 404 (model not found): try the next candidate
+    } catch (e) {
+      return json(200, { answer: null, error: 'exception', detail: String(e).slice(0, 200) });
     }
-    const data = await resp.json();
-    const answer = (data.content || []).filter(c => c.type === 'text').map(c => c.text).join('\n').trim();
-    return json(200, { answer });
-  } catch (e) {
-    return json(200, { answer: null, error: 'exception', detail: String(e).slice(0, 200) });
   }
+  return json(200, { answer: null, error: 'no_available_model', detail: lastDetail });
 };
 
 function json(statusCode, body) {
