@@ -1,5 +1,45 @@
-import React, { useState, useMemo } from 'react';
-import { BubbleMap, StackedBars, SortTable, RankedBars, TrendLine, COL, pct, fmt0, fmt1, rateColor } from './charts';
+import React, { useState, useMemo, useRef } from 'react';
+import Map, { Source, Layer } from 'react-map-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
+import { StackedBars, SortTable, RankedBars, TrendLine, COL, pct, fmt0, fmt1, rateColor } from './charts';
+
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || '';
+
+function GeoMap({ las, metric, onSelect }) {
+  const [hover, setHover] = useState(null);
+  const max = metric === 'neet' ? 6 : 12;
+  const geojson = useMemo(() => ({
+    type: 'FeatureCollection',
+    features: las.filter(l => l.c).map(l => ({
+      type: 'Feature', geometry: { type: 'Point', coordinates: l.c },
+      properties: { name: l.name, v: l[metric] == null ? 0 : l[metric], size: l.cohort || 0 },
+    })),
+  }), [las, metric]);
+  const paint = {
+    'circle-radius': ['interpolate', ['linear'], ['zoom'],
+      5, ['interpolate', ['linear'], ['get', 'size'], 0, 3, 3000, 6, 10000, 12, 22000, 18],
+      9, ['interpolate', ['linear'], ['get', 'size'], 0, 6, 3000, 13, 10000, 24, 22000, 36]],
+    'circle-color': ['interpolate', ['linear'], ['get', 'v'], 0, 'rgb(13,122,66)', max / 2, 'rgb(232,146,14)', max, 'rgb(185,28,74)'],
+    'circle-opacity': 0.82, 'circle-stroke-width': 0.7, 'circle-stroke-color': '#ffffff',
+  };
+  if (!MAPBOX_TOKEN) return <div style={{ height: 560, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem', background: '#f1f5f9', borderRadius: 12, padding: 20 }}>Add your Mapbox token (VITE_MAPBOX_TOKEN) to show the basemap.</div>;
+  return (
+    <div style={{ height: 560, borderRadius: 12, overflow: 'hidden', position: 'relative', border: '1px solid #e2e8f0' }}>
+      <Map mapboxAccessToken={MAPBOX_TOKEN} initialViewState={{ longitude: -1.9, latitude: 53.0, zoom: 5.1 }}
+        style={{ width: '100%', height: '100%' }} mapStyle="mapbox://styles/mapbox/light-v11"
+        interactiveLayerIds={['la-bubbles']}
+        onMouseMove={e => { const f = e.features && e.features[0]; if (f) { setHover({ name: f.properties.name, v: f.properties.v, x: e.point.x, y: e.point.y }); e.target.getCanvas().style.cursor = 'pointer'; } else { setHover(null); e.target.getCanvas().style.cursor = ''; } }}
+        onClick={e => { const f = e.features && e.features[0]; if (f) onSelect(f.properties.name); }}>
+        <Source id="la-src" type="geojson" data={geojson}>
+          <Layer id="la-bubbles" type="circle" paint={paint} />
+        </Source>
+      </Map>
+      {hover && (
+        <div style={{ position: 'absolute', left: Math.min(hover.x + 12, 320), top: Math.max(hover.y - 6, 6), background: '#0f172a', color: '#fff', padding: '5px 9px', borderRadius: 7, fontSize: '0.74rem', pointerEvents: 'none', fontWeight: 600, zIndex: 5, whiteSpace: 'nowrap' }}>{hover.name}: {fmt1(hover.v)}%</div>
+      )}
+    </div>
+  );
+}
 
 function LaDrawer({ la, onClose }) {
   if (!la) return null;
@@ -54,7 +94,6 @@ export default function Geography({ data }) {
     filter === 'all' ? true : filter === 'ne' ? l.ne : filter === 'coastal' ? l.coastal : l.milburn
   ), [data.las, filter]);
 
-  const bubbles = las.map(l => ({ c: l.c, v: l[metric], size: l.cohort, name: l.name, hl: l.milburn }));
   const regionBars = data.regions.map(r => ({ label: r.name, value: r.neetnk, color: rateColor(r.neetnk, 8), hl: r.name === 'North East' }));
   const topSplit = [...las].sort((a, b) => b.neetnk - a.neetnk).slice(0, 16)
     .map(l => ({ label: l.name, a: l.neet, b: l.nk, hl: l.milburn }));
@@ -77,13 +116,13 @@ export default function Geography({ data }) {
       <div className="nd-grid" style={{ gridTemplateColumns: '460px 1fr', alignItems: 'start' }}>
         <div className="nd-card">
           <div className="nd-card-title">England by local authority</div>
-          <div className="nd-card-desc">Bubble size = cohort; colour = rate. Hover for figures.</div>
+          <div className="nd-card-desc">Bubbles sit on each authority; size = cohort, colour = rate. Hover for figures, click for full detail. Zoom and pan like any map.</div>
           <div className="nd-chips">
             <button className={'nd-chip' + (metric === 'neetnk' ? ' active' : '')} onClick={() => setMetric('neetnk')}>NEET + not known</button>
             <button className={'nd-chip' + (metric === 'neet' ? ' active' : '')} onClick={() => setMetric('neet')}>NEET only</button>
             <button className={'nd-chip' + (metric === 'nk' ? ' active' : '')} onClick={() => setMetric('nk')}>Not known only</button>
           </div>
-          <BubbleMap points={bubbles} max={metric === 'neet' ? 6 : 12} onHover={(p) => setSelectedLa(byName[p.name])} />
+          <GeoMap las={las} metric={metric} onSelect={(name) => setSelectedLa(byName[name])} />
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6, fontSize: '0.74rem', color: '#64748b' }}>
             <span>Low</span>
             <span style={{ flex: 1, height: 8, borderRadius: 4, background: `linear-gradient(90deg, ${rateColor(0)}, ${rateColor(6)}, ${rateColor(12)})` }} />
