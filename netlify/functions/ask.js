@@ -18,13 +18,13 @@ DATASET (England; 16-17 NEET is 2025 unless a trend year is given):
 
 exports.handler = async (event) => {
   const KEY = process.env.ANTHROPIC_API_KEY || process.env.VITE_ANTHROPIC_KEY || process.env.ANTHROPIC_KEY;
-  const MODEL = process.env.ASK_MODEL || 'claude-3-5-sonnet-latest';
+  const MODEL = process.env.ASK_MODEL || 'claude-sonnet-4-6';
   // Health check (GET): reports whether the function can see a key. Add ?test=1 to make a tiny live call.
   if (event.httpMethod === 'GET') {
     const src = process.env.ANTHROPIC_API_KEY ? 'ANTHROPIC_API_KEY' : process.env.VITE_ANTHROPIC_KEY ? 'VITE_ANTHROPIC_KEY' : process.env.ANTHROPIC_KEY ? 'ANTHROPIC_KEY' : null;
     const base = { status: 'ok', keyPresent: !!src, keySource: src, model: MODEL, briefLoaded: !!(brief && brief.national) };
     if (!(event.queryStringParameters && event.queryStringParameters.test) || !KEY) return json(200, base);
-    const probe = ['claude-3-5-sonnet-latest', 'claude-3-5-sonnet-20241022', 'claude-3-5-haiku-latest', 'claude-3-5-haiku-20241022', 'claude-3-haiku-20240307', 'claude-3-opus-20240229', 'claude-sonnet-4-20250514'];
+    const probe = ['claude-sonnet-4-6', 'claude-haiku-4-5-20251001', 'claude-opus-4-8'];
     const results = [];
     for (const m of probe) {
       try {
@@ -49,7 +49,7 @@ exports.handler = async (event) => {
   // Try the configured model, then fall back to widely-available models if it is not found for this key.
   const candidates = process.env.ASK_MODEL
     ? [process.env.ASK_MODEL]
-    : ['claude-3-5-sonnet-latest', 'claude-3-5-haiku-latest', 'claude-3-haiku-20240307'];
+    : ['claude-sonnet-4-6', 'claude-haiku-4-5-20251001', 'claude-opus-4-8'];
   let lastDetail = '';
   for (const m of candidates) {
     try {
