@@ -17,6 +17,13 @@ DATASET (England; 16-17 NEET is 2025 unless a trend year is given):
 ` + JSON.stringify(brief);
 
 exports.handler = async (event) => {
+  // Health check: GET reports whether the function can see a key, without revealing it.
+  if (event.httpMethod === 'GET') {
+    const src = process.env.ANTHROPIC_API_KEY ? 'ANTHROPIC_API_KEY'
+      : process.env.VITE_ANTHROPIC_KEY ? 'VITE_ANTHROPIC_KEY'
+      : process.env.ANTHROPIC_KEY ? 'ANTHROPIC_KEY' : null;
+    return json(200, { status: 'ok', keyPresent: !!src, keySource: src, model: process.env.ASK_MODEL || 'claude-sonnet-4-20250514', briefLoaded: !!(brief && brief.national) });
+  }
   if (event.httpMethod !== 'POST') return json(405, { error: 'method_not_allowed' });
   let question = '';
   try { question = (JSON.parse(event.body || '{}').question || '').toString().slice(0, 600); } catch { /* ignore */ }
