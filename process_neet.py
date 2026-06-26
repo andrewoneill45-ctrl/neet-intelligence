@@ -240,6 +240,38 @@ dashboard = {
 os.makedirs(OUT, exist_ok=True)
 json.dump(neet_schools, open(OUT+"/neet_schools.json","w"), separators=(",",":"))
 json.dump(dashboard, open(OUT+"/neet_dashboard.json","w"), separators=(",",":"))
+
+# Compact data brief for the Ask-the-data LLM function (no per-school scatter)
+def r1(v): return None if v is None else round(v,1)
+brief = {
+    "meta": dashboard["meta"],
+    "national": {"neet_not_known_pct": r1(nat_latest.get("neetnk")), "neet_pct": r1(nat_latest.get("neet")),
+                 "not_known_pct": r1(nat_latest.get("nk")), "cohort": int(nat_latest.get("cohort") or 0),
+                 "trend": [{"year":p["y"],"neet_not_known_pct":r1(p["v"])} for p in national["ts"]],
+                 "by_sex": {k:r1(v) for k,v in nat_breakdowns["sex"].items()},
+                 "by_send": {k:r1(v) for k,v in nat_breakdowns["SEND"].items()},
+                 "by_ethnicity": {k:r1(v) for k,v in nat_breakdowns["ethnicity"].items()}},
+    "regions": [{"name":d["name"],"neet_not_known_pct":r1(d["neetnk"]),"neet_pct":r1(d["neet"]),
+                 "not_known_pct":r1(d["nk"]),"cohort":int(d["cohort"] or 0)} for d in dashboard["regions"]],
+    "local_authorities": [{"name":d["name"],"region":d["region"],"neet_not_known_pct":r1(d["neetnk"]),
+                 "neet_pct":r1(d["neet"]),"not_known_pct":r1(d["nk"]),"cohort":int(d["cohort"] or 0),
+                 "annual_change_ppts":r1(d.get("annual_change")),"coastal":d["coastal"],"north_east":d["ne"]}
+                 for d in dashboard["las"]],
+    "admissions_destinations": {
+        "selective_no_sustained_pct": r1(admissions["selective_ns"]),
+        "non_selective_no_sustained_pct": r1(admissions["nonselective_ns"]),
+        "selective_disadvantaged_no_sustained_pct": r1(admissions["selective_dis_ns"]),
+        "non_selective_disadvantaged_no_sustained_pct": r1(admissions["nonselective_dis_ns"]),
+        "disadvantaged_no_sustained_pct": r1(admissions["dis_ns_national"]),
+        "not_disadvantaged_no_sustained_pct": r1(admissions["nondis_ns_national"]),
+        "by_institution_type": [{"type":t["type"],"no_sustained_pct":r1(t["ns"]),"schools":t["n"]} for t in admissions["byType"][:12]],
+    },
+    "ks4_national_destinations": {k:r1(v) if isinstance(v,(int,float)) else v for k,v in ks4_nat.items()},
+}
+FN = HERE + "/netlify/functions"
+os.makedirs(FN, exist_ok=True)
+json.dump(brief, open(FN+"/neet-brief.json","w"), separators=(",",":"))
+print("brief written:", FN+"/neet-brief.json")
 print("schools with destinations:", len(neet_schools))
 print("LAs:", len(dashboard["las"]), "regions:", len(dashboard["regions"]))
 print("national latest:", national["latest"])
