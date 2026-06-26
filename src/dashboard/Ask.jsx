@@ -85,7 +85,11 @@ export default function Ask({ onClose }) {
       const r = await fetch('/.netlify/functions/ask', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ question }) });
       const j = await r.json();
       if (j && j.answer) { setResult({ text: j.answer }); }
-      else { const p = PRESETS[matchPreset(question)]; setResult(p.run(data)); setNote(j && j.error === 'no_key' ? 'The AI layer is not configured yet (no API key), so here is the closest ready-made answer.' : 'The AI layer could not be reached, so here is the closest ready-made answer.'); }
+      else {
+        const p = PRESETS[matchPreset(question)]; setResult(p.run(data));
+        if (j && j.error === 'no_key') setNote('The AI layer is not configured yet (no API key set in Netlify), so here is the closest ready-made answer.');
+        else setNote('AI layer error (' + ((j && (j.detail || j.error)) || 'no response') + '). Showing the closest ready-made answer.');
+      }
     } catch (e) {
       const p = PRESETS[matchPreset(question)]; setResult(p.run(data)); setNote('Offline: showing the closest ready-made answer.');
     }

@@ -22,10 +22,11 @@ exports.handler = async (event) => {
   try { question = (JSON.parse(event.body || '{}').question || '').toString().slice(0, 600); } catch { /* ignore */ }
   if (!question.trim()) return json(400, { error: 'no_question' });
 
-  const key = process.env.ANTHROPIC_API_KEY;
+  // Accept any of the common key names so an existing key can be reused.
+  const key = process.env.ANTHROPIC_API_KEY || process.env.VITE_ANTHROPIC_KEY || process.env.ANTHROPIC_KEY;
   if (!key) return json(200, { answer: null, error: 'no_key' });
 
-  const model = process.env.ASK_MODEL || 'claude-3-5-haiku-latest';
+  const model = process.env.ASK_MODEL || 'claude-sonnet-4-20250514';
   try {
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
