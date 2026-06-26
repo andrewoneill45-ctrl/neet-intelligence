@@ -1,0 +1,28 @@
+.cp-overlay {
+  position: fixed; inset: 0; z-index: 600;
+  background: rgba(0,0,0,0.4); backdrop-filter: blur(3px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px; animation: fadeIn 0.15s ease;
+}
+.cp-panel {
+  background: var(--white); border-radius: 12px;
+  max-width: 800px; width: 100%; max-height: 80vh; overflow-y: auto;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.15); animation: scaleIn 0.2s var(--ease);
+}
+.cp-head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px 20px; border-bottom: 1px solid var(--slate-100);
+}
+.cp-title { font-size: 1rem; font-weight: 700; }
+.cp-close { background: var(--slate-100); border: none; border-radius: 8px; width: 32px; height: 32px; cursor: pointer; font-size: 14px; color: var(--slate-500); }
+.cp-table { padding: 8px 0; }
+.cp-row { display: grid; grid-template-columns: 140px repeat(3, 1fr); gap: 8px; padding: 6px 20px; border-bottom: 1px solid var(--slate-50); align-items: center; }
+.cp-row-header { padding-bottom: 10px; border-bottom: 2px solid var(--slate-100); }
+.cp-row-label { font-size: 0.78rem; color: var(--slate-500); font-weight: 600; }
+.cp-row-val { font-size: 0.85rem; font-weight: 600; color: var(--slate-800); }
+.cp-school-name { font-size: 0.78rem; font-weight: 700; display: flex; flex-direction: column; gap: 2px; }
+.cp-rm { align-self: flex-start; background: none; border: none; font-size: 10px; color: var(--slate-400); cursor: pointer; }
+.cp-best { color: var(--green-600); }
+@media (max-width: 640px) {
+  .cp-row { grid-template-columns: 100px repeat(3, 1fr); gap: 4px; padding: 6px 12px; font-size: 0.78rem; }
+}
