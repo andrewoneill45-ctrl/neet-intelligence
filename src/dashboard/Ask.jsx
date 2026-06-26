@@ -111,6 +111,27 @@ function MD({ text }) {
   return <div style={{ fontSize: '0.95rem', color: '#1e293b' }}>{blocks}</div>;
 }
 
+function parseAnswer(text) {
+  const m = text.match(/```(?:chart|json)\s*([\s\S]*?)```/i);
+  let chart = null, prose = text;
+  if (m) { try { chart = JSON.parse(m[1].trim()); } catch { /* ignore */ } prose = text.replace(m[0], '').trim(); }
+  return { prose, chart };
+}
+
+function AnswerChart({ chart }) {
+  if (!chart || !Array.isArray(chart.data) || !chart.data.length) return null;
+  const data = chart.data.map(d => ({ label: String(d.label), value: Number(d.value) })).filter(d => !isNaN(d.value));
+  if (!data.length) return null;
+  return (
+    <div style={{ marginTop: 14, background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, padding: '12px 14px' }}>
+      {chart.title && <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: 8 }}>{chart.title}</div>}
+      {chart.type === 'line'
+        ? <div style={{ maxWidth: 520 }}><TrendLine series={data.map(d => ({ y: parseInt(d.label.slice(0, 4)) || d.label, v: d.value }))} color={COL.crimson} /></div>
+        : <RankedBars data={data.map(d => ({ label: d.label, value: d.value, color: rateColor(d.value, Math.max(...data.map(x => x.value)) || 1) }))} unit={chart.unit || ''} labelWidth={150} max={Math.max(...data.map(d => d.value)) * 1.08} />}
+    </div>
+  );
+}
+
 export default function Ask({ onClose }) {
   const [data, setData] = useState(null);
   const [q, setQ] = useState('');
@@ -131,7 +152,7 @@ export default function Ask({ onClose }) {
     try {
       const r = await fetch('/.netlify/functions/ask', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ question, mode }) });
       const j = await r.json();
-      if (j && j.answer) { setResult({ text: j.answer }); }
+      if (j && j.answer) { const { prose, chart } = parseAnswer(j.answer); setResult({ text: prose, aiChart: chart }); }
       else if (mode === 'idea') {
         setNote(j && j.error === 'no_key' ? 'Testing an idea needs the AI layer, which is not configured yet (no API key in Netlify).' : 'The AI layer could not be reached (' + ((j && (j.detail || j.error)) || 'no response') + ').');
       } else {
@@ -174,13 +195,22 @@ export default function Ask({ onClose }) {
           </div>
 
           {note && <div style={{ marginTop: 16, fontSize: '0.8rem', color: '#9a3412', background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 8, padding: '8px 12px' }}>{note}</div>}
-          {loading && <div style={{ marginTop: 16, fontSize: '0.85rem', color: '#64748b' }}>{mode === 'idea' ? 'Testing the idea against the data…' : 'Thinking…'}</div>}
+          {loading && (
+            <div className="nd-thinking">
+              <span className="nd-spinner" />
+              <span className="nd-pulse">{mode === 'idea' ? 'Testing the idea against the data…' : 'Reading the data and writing an answer…'}</span>
+            </div>
+          )}
 
-          {result && (
+          {result && !loading && (
             <div style={{ marginTop: 18, borderTop: '1px solid #f1f5f9', paddingTop: 16 }}>
-              <MD text={result.text} />
-              {result.bars && <div style={{ marginTop: 12 }}><RankedBars data={result.bars} labelWidth={170} max={Math.max(...result.bars.map(b => b.value)) * 1.05} /></div>}
-              {result.trend && <div style={{ marginTop: 12, maxWidth: 520 }}><TrendLine series={result.trend} color={COL.crimson} /></div>}
+              <div style={{ background: '#f8fafc', border: '1px solid #e8edf3', borderRadius: 12, padding: '16px 18px' }}>
+                <MD text={result.text} />
+                {result.aiChart && <AnswerChart chart={result.aiChart} />}
+                {result.bars && <div style={{ marginTop: 12 }}><RankedBars data={result.bars} labelWidth={170} max={Math.max(...result.bars.map(b => b.value)) * 1.05} /></div>}
+                {result.trend && <div style={{ marginTop: 12, maxWidth: 520 }}><TrendLine series={result.trend} color={COL.crimson} /></div>}
+              </div>
+              <div style={{ marginTop: 8, fontSize: '0.72rem', color: '#94a3b8' }}>Generated from the published DfE figures in this dashboard. Check key numbers before quoting.</div>
             </div>
           )}
 

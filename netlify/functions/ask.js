@@ -14,7 +14,14 @@ const RULES = `
 - British English. No em dashes. Percentages to one decimal place. This is for senior policy officials: rigorous and neutral.
 FORMATTING (important): Keep it short, roughly 120 to 180 words. Write in plain prose. Do NOT use markdown tables or "#" headings. If you must list places, use at most five bullet points, each one short line ("Blackpool: 8.9%"). Lead with the direct answer.`;
 
-const SYSTEM = `You are the analyst for an Education and Skills roundtable on the NEET (not in education, employment or training) crisis. Answer the user's question strictly from the dataset.` + RULES + DATA;
+const CHART = `
+CHART: If the answer involves a ranking, comparison, or a trend over time, append exactly ONE chart at the very end, as a fenced code block labelled chart containing compact JSON:
+\`\`\`chart
+{"type":"bar","title":"Confirmed NEET, weakest coastal authorities","unit":"%","data":[{"label":"Blackpool","value":7.6},{"label":"Medway","value":6.6}]}
+\`\`\`
+Use "line" for a time trend (labels are years). Use only figures from the dataset, at most 8 data points, ordered most to least. Put nothing after the chart block. If a chart would not help, omit it entirely.`;
+
+const SYSTEM = `You are the analyst for an Education and Skills roundtable on the NEET (not in education, employment or training) crisis. Answer the user's question strictly from the dataset.` + RULES + CHART + DATA;
 
 const IDEA_SYSTEM = `You are a sharp, candid policy analyst stress-testing an idea for an Education and Skills roundtable on the NEET crisis, using the dataset as your evidence base. The user describes a policy idea or "what if". Assess it against the data.
 Structure your answer in four short labelled parts, using bold labels on their own line (not "#" headings):

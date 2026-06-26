@@ -83,5 +83,12 @@
 .nd-callout { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 12px; padding: 14px 18px; font-size: 0.88rem; line-height: 1.5; color: #7c2d12; margin-top: 14px; }
 .nd-callout b { color: #9a3412; }
 
+/* Thinking / loading indicator */
+@keyframes nd-spin { to { transform: rotate(360deg); } }
+@keyframes nd-pulse-kf { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
+.nd-thinking { display: flex; align-items: center; gap: 11px; margin-top: 20px; color: #334155; font-weight: 600; font-size: 0.92rem; }
+.nd-spinner { width: 18px; height: 18px; border: 2.5px solid #d8e0ea; border-top-color: #0f2440; border-radius: 50%; animation: nd-spin 0.7s linear infinite; flex: 0 0 auto; }
+.nd-pulse { animation: nd-pulse-kf 1.4s ease-in-out infinite; }
+
 svg.nd-chart text { font-family: 'Source Sans 3', sans-serif; }
 @media (max-width: 760px){ .nd-claim{grid-template-columns:1fr;} .nd-contrast{grid-template-columns:1fr;} }
