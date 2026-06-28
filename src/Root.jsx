@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import App from './App';
 import Dashboard from './dashboard/Dashboard';
 import Ask from './dashboard/Ask';
@@ -22,9 +22,16 @@ const NAV = [
 
 function NavDropdown({ label, items, view, onPick }) {
   const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    if (!open) return;
+    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, [open]);
   const active = items.some(i => i.k === view);
   return (
-    <div className="nd-dd" onMouseLeave={() => setOpen(false)}>
+    <div className="nd-dd" ref={ref}>
       <button className={'nd-tab' + (active ? ' active' : '')} onClick={() => setOpen(o => !o)}>{label}<span style={{ marginLeft: 5, fontSize: '0.7em' }}>▾</span></button>
       {open && (
         <div className="nd-dd-menu">
