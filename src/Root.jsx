@@ -5,16 +5,35 @@ import Ask from './dashboard/Ask';
 import Story from './dashboard/Story';
 import './dashboard/dashboard.css';
 
-const TABS = [
-  { k: 'map', label: 'Map Explorer' },
-  { k: 'overview', label: 'Overview' },
-  { k: 'geography', label: 'Geography' },
-  { k: 'admissions', label: 'Admissions' },
-  { k: 'send', label: 'SEND & Disadvantage' },
-  { k: 'qualifications', label: 'Qualifications' },
-  { k: 'international', label: 'International' },
-  { k: 'milburn', label: 'Milburn Lens' },
+const NAV = [
+  { type: 'tab', k: 'overview', label: 'Overview' },
+  { type: 'group', label: 'Explore', items: [
+    { k: 'map', label: 'Map Explorer' },
+    { k: 'geography', label: 'Geography' },
+  ] },
+  { type: 'group', label: 'Analysis', items: [
+    { k: 'admissions', label: 'Admissions' },
+    { k: 'send', label: 'SEND & Disadvantage' },
+    { k: 'qualifications', label: 'Qualifications' },
+    { k: 'international', label: 'International' },
+    { k: 'milburn', label: 'Milburn Lens' },
+  ] },
 ];
+
+function NavDropdown({ label, items, view, onPick }) {
+  const [open, setOpen] = useState(false);
+  const active = items.some(i => i.k === view);
+  return (
+    <div className="nd-dd" onMouseLeave={() => setOpen(false)}>
+      <button className={'nd-tab' + (active ? ' active' : '')} onClick={() => setOpen(o => !o)}>{label}<span style={{ marginLeft: 5, fontSize: '0.7em' }}>▾</span></button>
+      {open && (
+        <div className="nd-dd-menu">
+          {items.map(i => <button key={i.k} className={'nd-dd-item' + (i.k === view ? ' active' : '')} onClick={() => { onPick(i.k); setOpen(false); }}>{i.label}</button>)}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Root() {
   const [view, setView] = useState('overview');
@@ -29,9 +48,9 @@ export default function Root() {
       <div className="nd-nav">
         <span className="nd-brand"><span className="dot" />NEET Intelligence</span>
         <div className="nd-tabs nd-tabs-desktop">
-          {TABS.map(t => (
-            <button key={t.k} className={'nd-tab' + (view === t.k ? ' active' : '')} onClick={() => setView(t.k)}>{t.label}</button>
-          ))}
+          {NAV.map((n, i) => n.type === 'tab'
+            ? <button key={i} className={'nd-tab' + (view === n.k ? ' active' : '')} onClick={() => setView(n.k)}>{n.label}</button>
+            : <NavDropdown key={i} label={n.label} items={n.items} view={view} onPick={setView} />)}
         </div>
         <button className="nd-present-btn" onClick={() => setShowStory(true)}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><polygon points="5 3 19 12 5 21 5 3" /></svg>
@@ -53,9 +72,12 @@ export default function Root() {
       </div>
       {menuOpen && (
         <div className="nd-mobile-menu">
-          {TABS.map(t => (
-            <button key={t.k} className={'nd-mob-item' + (view === t.k ? ' active' : '')} onClick={() => pick(t.k)}>{t.label}</button>
-          ))}
+          {NAV.map((n, i) => n.type === 'tab'
+            ? <button key={i} className={'nd-mob-item' + (view === n.k ? ' active' : '')} onClick={() => pick(n.k)}>{n.label}</button>
+            : <React.Fragment key={i}>
+                <div className="nd-mob-group">{n.label}</div>
+                {n.items.map(it => <button key={it.k} className={'nd-mob-item nd-mob-sub' + (view === it.k ? ' active' : '')} onClick={() => pick(it.k)}>{it.label}</button>)}
+              </React.Fragment>)}
           <div className="nd-mob-sep" />
           <button className="nd-mob-item" onClick={() => { setShowStory(true); setMenuOpen(false); }}>▶ Present mode</button>
           <button className="nd-mob-item" onClick={() => { setShowAsk(true); setMenuOpen(false); }}>Ask the data</button>
