@@ -146,7 +146,7 @@ export default function Geography({ data, jumpToMap }) {
     filter === 'all' ? true : filter === 'ne' ? l.ne : filter === 'coastal' ? l.coastal : l.milburn
   ), [data.las, filter]);
 
-  const regionBars = data.regions.map(r => ({ label: r.name, value: r.neetnk, color: rateColor(r.neetnk, 8), hl: r.name === 'North East' }));
+  const regionBars = data.regions.map(r => ({ label: r.name, value: r.neetnk, color: rateColor(r.neetnk, 8), hl: r.name === 'North East', meta: r.ks4 }));
   const topSplit = [...las].sort((a, b) => b.neetnk - a.neetnk).slice(0, 16)
     .map(l => ({ label: l.name, a: l.neet, b: l.nk, hl: l.milburn }));
 

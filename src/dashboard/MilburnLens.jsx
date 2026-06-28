@@ -7,7 +7,7 @@ export default function MilburnLens({ data }) {
   const a = data.admissions;
   const topNK = [...data.las].sort((x, y) => y.nk - x.nk).slice(0, 6)
     .map(l => ({ label: l.name, value: l.nk, color: COL.amber }));
-  const regionBars = data.regions.map(r => ({ label: r.name, value: r.neetnk, color: rateColor(r.neetnk, 8), hl: r.name === 'North East' }));
+  const regionBars = data.regions.map(r => ({ label: r.name, value: r.neetnk, color: rateColor(r.neetnk, 8), hl: r.name === 'North East', meta: r.ks4 }));
   const sendBars = [
     { label: 'No SEN', value: send['No SEN'], color: rateColor(send['No SEN'], 11) },
     { label: 'SEN support', value: send['SEN support'], color: rateColor(send['SEN support'], 11) },

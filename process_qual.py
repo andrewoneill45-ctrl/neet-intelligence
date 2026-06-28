@@ -82,6 +82,23 @@ with open(KS4 + "202324_national_data_revised.csv", encoding="utf-8-sig") as f:
                 ks4 = {"att8": num(row.get("avg_att8")), "basics4": num(row.get("pt_l2basics_94")),
                        "ebacc_entry": num(row.get("pt_ebacc_e_ptq_ee")), "pupils": int(tp)}
 
+# ---------- Cross-country (OECD) ----------
+international = []
+CROSS = BASE + "/cross_country_neet_data.csv"
+if os.path.exists(CROSS):
+    with open(CROSS, encoding="utf-8-sig") as f:
+        for row in csv.DictReader(f):
+            country = (row.get("Country") or "").strip()
+            if not country: continue
+            international.append({
+                "country": country,
+                "neet": num(row.get("18-24 NEET rate (%)")),
+                "vocational": num(row.get("Percentage of upper secondary in vocational training (%)")),
+                "completed": num(row.get("Percentage who have completed upper secondary (%)")),
+                "unemployment": num(row.get("Age 25+ unemployment rate (%)")),
+            })
+    international.sort(key=lambda x: (x["neet"] if x["neet"] is not None else 99))
+
 dashboard = {
     "meta": {"app_year": "2022/23", "results_year": "2024/25", "ks4_year": "2023/24",
              "source": "DfE EES: Apprenticeships & traineeships 2022/23; A level and other 16-18 results 2024/25; KS4 performance 2023/24"},
@@ -89,6 +106,7 @@ dashboard = {
     "resit": resit,
     "route_mix": route_mix,
     "ks4": ks4,
+    "international": international,
 }
 os.makedirs(OUT, exist_ok=True)
 json.dump(dashboard, open(OUT + "/qual_dashboard.json", "w"), separators=(",", ":"))

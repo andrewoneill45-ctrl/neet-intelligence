@@ -30,18 +30,38 @@ export function StatCard({ value, label, sub, accent = COL.blue }) {
   );
 }
 
-// Horizontal ranked bars. data: [{label, value, color?, hl?, sub?}]
+function Ks4HoverCard({ name, meta, x, y }) {
+  const rows = [['Attainment 8', meta.att8 == null ? '–' : fmt1(meta.att8)], ['Progress 8 (2024)', meta.p8 == null ? '–' : (meta.p8 > 0 ? '+' : '') + fmt1(meta.p8)], ['5+ in English & maths', meta.basics5 == null ? '–' : fmt1(meta.basics5) + '%'], ['4+ in English & maths', meta.basics4 == null ? '–' : fmt1(meta.basics4) + '%']];
+  return (
+    <div style={{ position: 'fixed', left: Math.min(x + 14, window.innerWidth - 230), top: y + 12, background: '#0f172a', color: '#fff', borderRadius: 10, padding: '10px 12px', zIndex: 60, pointerEvents: 'none', width: 210, boxShadow: '0 8px 24px rgba(0,0,0,0.3)' }}>
+      <div style={{ fontWeight: 800, fontSize: '0.82rem', marginBottom: 6 }}>{name}</div>
+      <div style={{ fontSize: '0.66rem', color: '#93b4dd', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6 }}>Attainment, this region</div>
+      {rows.map(([l, v], i) => (
+        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', padding: '2px 0' }}>
+          <span style={{ color: '#cbd5e1' }}>{l}</span><span style={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{v}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Horizontal ranked bars. data: [{label, value, color?, hl?, sub?, meta?}]
 export function RankedBars({ data, max, unit = '%', labelWidth = 150 }) {
+  const [hover, setHover] = useState(null);
   const mx = max || Math.max(...data.map(d => d.value || 0)) * 1.05 || 1;
   return (
     <div>
       {data.map((d, i) => (
-        <div className={'nd-bar-row' + (d.hl ? ' hl' : '')} key={i} style={{ gridTemplateColumns: `${labelWidth}px 1fr 56px` }}>
-          <span className="lab" title={d.label}>{d.label}{d.sub ? <span style={{ color: '#94a3b8', fontWeight: 400 }}> · {d.sub}</span> : null}</span>
+        <div className={'nd-bar-row' + (d.hl ? ' hl' : '')} key={i} style={{ gridTemplateColumns: `${labelWidth}px 1fr 56px`, cursor: d.meta ? 'pointer' : 'default' }}
+          onMouseEnter={d.meta ? e => setHover({ i, x: e.clientX, y: e.clientY }) : undefined}
+          onMouseMove={d.meta ? e => setHover({ i, x: e.clientX, y: e.clientY }) : undefined}
+          onMouseLeave={d.meta ? () => setHover(null) : undefined}>
+          <span className="lab" title={d.label}>{d.label}{d.sub ? <span style={{ color: '#94a3b8', fontWeight: 400 }}> · {d.sub}</span> : null}{d.meta ? <span style={{ color: '#cbd5e1', fontWeight: 700 }}> ⓘ</span> : null}</span>
           <span className="nd-bar-track"><span className="nd-bar-fill" style={{ width: `${Math.max(1, (d.value / mx) * 100)}%`, background: d.color || COL.blue }} /></span>
           <span className="val">{d.value == null ? '–' : fmt1(d.value)}{unit}</span>
         </div>
       ))}
+      {hover && data[hover.i] && data[hover.i].meta && <Ks4HoverCard name={data[hover.i].label} meta={data[hover.i].meta} x={hover.x} y={hover.y} />}
     </div>
   );
 }

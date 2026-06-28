@@ -3,7 +3,7 @@ import { StatCard, TrendLine, RankedBars, COL, pct, fmt1, rateColor } from './ch
 
 export default function Overview({ data, go }) {
   const n = data.national.latest;
-  const regions = data.regions.map(r => ({ label: r.name, value: r.neetnk, color: rateColor(r.neetnk, 8), hl: r.name === 'North East' }));
+  const regions = data.regions.map(r => ({ label: r.name, value: r.neetnk, color: rateColor(r.neetnk, 8), hl: r.name === 'North East', meta: r.ks4 }));
   return (
     <div className="nd-page-inner">
       <h1 className="nd-h1">The NEET picture, from an education lens</h1>

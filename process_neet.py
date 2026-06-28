@@ -216,6 +216,23 @@ for d in region_latest.values():
     if c: d["c"]=c
 matched = sum(1 for d in la_latest.values() if d.get("c"))
 
+# Region KS4 aggregates (pupil-weighted) from schools.json, for hover cards on region bars
+rk = collections.defaultdict(lambda: collections.defaultdict(lambda: [0.0, 0.0]))
+for s in schools:
+    rg = s.get("region"); w = s.get("pupils") or 0
+    if not rg or not w: continue
+    for metric, key in [("att8", "attainment8"), ("p8", "p8_prev"), ("basics4", "basics_94"), ("basics5", "basics_95")]:
+        v = s.get(key)
+        if v is not None:
+            rk[norm(rg)][metric][0] += w * v; rk[norm(rg)][metric][1] += w
+def ragg(name):
+    d = rk.get(norm(name), {}); out = {}
+    for m in ["att8", "p8", "basics4", "basics5"]:
+        nu, de = d.get(m, [0, 0]); out[m] = round(nu / de, 1) if de else None
+    return out
+for dd in region_latest.values():
+    dd["ks4"] = ragg(dd["name"])
+
 # national disadvantaged vs not-disadvantaged not-sustained (mainstream, cohort-weighted)
 dgap_dis=[]; dgap_non=[]
 for urn,d in sch.items():
