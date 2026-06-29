@@ -5,6 +5,7 @@ import Admissions from './Admissions';
 import SendDisadvantage from './SendDisadvantage';
 import Qualifications from './Qualifications';
 import International from './International';
+import WhiteWorkingClass from './WhiteWorkingClass';
 import MilburnLens from './MilburnLens';
 
 export default function Dashboard({ view, go, jumpToMap }) {
@@ -18,6 +19,6 @@ export default function Dashboard({ view, go, jumpToMap }) {
   if (err) return <div className="nd-page"><div className="nd-page-inner"><div className="nd-card">Could not load dashboard data: {err}</div></div></div>;
   if (!data) return <div className="nd-page"><div className="nd-page-inner" style={{ color: '#64748b', paddingTop: 40 }}>Loading NEET data…</div></div>;
 
-  const Page = { overview: Overview, geography: Geography, admissions: Admissions, send: SendDisadvantage, qualifications: Qualifications, international: International, milburn: MilburnLens }[view] || Overview;
+  const Page = { overview: Overview, geography: Geography, admissions: Admissions, send: SendDisadvantage, qualifications: Qualifications, international: International, wwc: WhiteWorkingClass, milburn: MilburnLens }[view] || Overview;
   return <div className="nd-page"><Page data={data} go={go} jumpToMap={jumpToMap} /></div>;
 }

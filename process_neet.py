@@ -285,6 +285,18 @@ brief = {
     },
     "ks4_national_destinations": {k:r1(v) if isinstance(v,(int,float)) else v for k,v in ks4_nat.items()},
 }
+# Fold in the White Working Class inquiry figures (if present) so the AI can cite them
+_wwc_path = OUT + "/wwc_data.json"
+if os.path.exists(_wwc_path):
+    w = json.load(open(_wwc_path))
+    brief["white_working_class_inquiry"] = {
+        "source": w.get("source"),
+        "headline": w.get("headline"),
+        "attainment_gap_2024_25": w.get("attainment_gap"),
+        "key_lines": w.get("lines"),
+        "note": "From the Independent Inquiry into White Working Class Educational Outcomes (June 2026). Compares white British FSM pupils with non-FSM pupils. Always attribute to this inquiry.",
+    }
+
 FN = HERE + "/netlify/functions"
 os.makedirs(FN, exist_ok=True)
 json.dump(brief, open(FN+"/neet-brief.json","w"), separators=(",",":"))

@@ -15,6 +15,7 @@ const NAV = [
     { k: 'admissions', label: 'Admissions' },
     { k: 'send', label: 'SEND & Disadvantage' },
     { k: 'qualifications', label: 'Qualifications' },
+    { k: 'wwc', label: 'White Working Class' },
     { k: 'international', label: 'International' },
     { k: 'milburn', label: 'Milburn Lens' },
   ] },

@@ -1,0 +1,58 @@
+{
+  "source": "Independent Inquiry into White Working Class Educational Outcomes (June 2026). Commissioned by Star Academies, funded by the Christopher and Henry Oldfield Trust, authored by Public First. Co-chairs: Sir Hamid Patel CBE and Baroness Estelle Morris.",
+  "year": "June 2026",
+  "headline": {
+    "pupils_total_m": 8.45,
+    "fsm_m": 2.17,
+    "white_british_fsm_m": 1.25,
+    "share_of_school_pop_pct": 15,
+    "ks4_basics_wbfsm": 36,
+    "ks4_basics_nonfsm": 72,
+    "progress8_wbfsm": -0.9
+  },
+  "attainment_gap": [
+    { "stage": "Phonics (Year 1)", "wbfsm": 63, "nonfsm": 83 },
+    { "stage": "KS2 reading, writing & maths", "wbfsm": 43, "nonfsm": 69 },
+    { "stage": "KS4 grade 4+ English & maths", "wbfsm": 36, "nonfsm": 72 }
+  ],
+  "engagement": [
+    { "label": "Believe university is important for getting a good job", "value": 22, "frame": "only" },
+    { "label": "Think getting good grades is part of being successful", "value": 43, "frame": "only" },
+    { "label": "Rarely or never enjoy lessons", "value": 27, "frame": "neg" },
+    { "label": "Parents say their child's mental health is getting worse", "value": 55, "frame": "neg" },
+    { "label": "Do not reach a good level of development by end of Reception", "value": 52, "frame": "neg" },
+    { "label": "Parents: not enough local opportunities for their child to succeed", "value": 52, "frame": "neg" }
+  ],
+  "recommendations": {
+    "Secondary education": [
+      "Develop high-quality vocational and applied pathways at Key Stage 4",
+      "Ensure every young person leaves with a clear destination and is prepared for the transition",
+      "Widen access to the highest-performing schools",
+      "Reprioritise Key Stage 3 and strengthen Key Stage 4 curriculum delivery",
+      "Improve careers education and make learning feel more relevant"
+    ],
+    "Tertiary education": [
+      "Massively expand apprenticeship opportunities in white working class communities",
+      "Empower FE colleges as high-quality local engines of progression",
+      "Reduce the financial risks of further and higher study; free local transport for under-21s"
+    ],
+    "Early & primary": [
+      "Build a stronger network of Best Start Family Hubs",
+      "Extend 30 hours' free childcare to all disadvantaged families",
+      "Make reading fluency a national priority"
+    ],
+    "Across the system": [
+      "Define and prioritise white working class outcomes",
+      "A more inclusive approach to SEND and additional needs",
+      "A stronger response to mental health and excessive screen use",
+      "A properly funded enrichment entitlement"
+    ]
+  },
+  "lines": [
+    "Disadvantaged white British pupils experience some of the weakest educational outcomes in the country across all stages of education.",
+    "Nearly two thirds of white British FSM pupils finish compulsory education without the minimum qualifications needed to access most further education and employment.",
+    "Disadvantage, disengagement and unequal access to opportunity accumulate across childhood and adolescence.",
+    "The Inquiry rejects the idea that underachievement amongst white working class pupils is inevitable.",
+    "No child in England should grow up feeling that education is for other people, but not for them."
+  ]
+}
