@@ -232,6 +232,16 @@ def ragg(name):
     return out
 for dd in region_latest.values():
     dd["ks4"] = ragg(dd["name"])
+# National KS4 aggregate (pupil-weighted) for the Overview
+nat_rk = collections.defaultdict(lambda: [0.0, 0.0])
+for s in schools:
+    w = s.get("pupils") or 0
+    if not w: continue
+    for metric, key in [("att8", "attainment8"), ("p8", "p8_prev"), ("basics4", "basics_94"), ("basics5", "basics_95")]:
+        v = s.get(key)
+        if v is not None:
+            nat_rk[metric][0] += w * v; nat_rk[metric][1] += w
+national["ks4"] = {m: (round(nat_rk[m][0] / nat_rk[m][1], 1) if nat_rk[m][1] else None) for m in ["att8", "p8", "basics4", "basics5"]}
 
 # national disadvantaged vs not-disadvantaged not-sustained (mainstream, cohort-weighted)
 dgap_dis=[]; dgap_non=[]

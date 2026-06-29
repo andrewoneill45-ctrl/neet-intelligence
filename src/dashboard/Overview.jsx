@@ -17,6 +17,15 @@ export default function Overview({ data, go }) {
         <StatCard value={pct(data.ks4_national.ns)} label="School leavers with no sustained destination" sub="KS4 destinations, 2022/23 cohort" accent={COL.blue} />
       </div>
 
+      <h2 className="nd-h2">Key Stage 4 attainment (England, 2023/24)</h2>
+      <div className="nd-stats">
+        <StatCard value={fmt1(data.national.ks4.att8)} label="Average Attainment 8" accent={COL.blue} />
+        <StatCard value={(data.national.ks4.p8 > 0 ? '+' : '') + fmt1(data.national.ks4.p8)} label="Progress 8 (2024)" accent={COL.blue} />
+        <StatCard value={pct(data.national.ks4.basics5)} label="5+ in English & maths" accent={COL.navy} />
+        <StatCard value={pct(data.national.ks4.basics4)} label="4+ in English & maths" accent={COL.navy} />
+      </div>
+      <p className="nd-note">Pupil-weighted across state-funded secondaries. Hover any region bar below to see the same measures for that region.</p>
+
       <h2 className="nd-h2">Milburn's national picture (16 to 24)</h2>
       <div className="nd-stats">
         <StatCard value="957,000" label="Young people NEET (16-24)" sub="Milburn interim review, May 2026" accent={COL.crimson} />
@@ -36,6 +45,17 @@ export default function Overview({ data, go }) {
           <div className="nd-card-title">Region matters</div>
           <div className="nd-card-desc">NEET or not known by region, 2025. But read with care: a high rate can reflect poor tracking as much as real disengagement (see the Geography tab).</div>
           <RankedBars data={regions} labelWidth={130} max={8} />
+        </div>
+      </div>
+
+      <div onClick={() => go('wwc')} style={{ cursor: 'pointer', marginTop: 22, background: '#0f2440', color: '#fff', borderRadius: 14, padding: '18px 22px', display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
+        <div style={{ flex: '0 0 auto' }}>
+          <div style={{ fontSize: '2.2rem', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1 }}>36%<span style={{ color: '#93b4dd', fontSize: '1.2rem' }}> vs 72%</span></div>
+          <div style={{ fontSize: '0.74rem', color: '#aebfd4', marginTop: 4 }}>grade 4+ English &amp; maths</div>
+        </div>
+        <div style={{ flex: 1, minWidth: 240 }}>
+          <div style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#ef6b8a', marginBottom: 4 }}>New: Independent Inquiry, June 2026</div>
+          <div style={{ fontSize: '0.95rem', lineHeight: 1.5, color: '#dbe4ef' }}>White British FSM pupils have some of the weakest outcomes in the country, and a higher risk of becoming NEET. Open the White Working Class findings →</div>
         </div>
       </div>
 
