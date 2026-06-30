@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { StatCard, RankedBars, GroupedBars, Legend, COL, pct, fmt0, fmt1 } from './charts';
+import { StatCard, RankedBars, GroupedBars, MultiLine, Legend, COL, pct, fmt0, fmt1 } from './charts';
 
 export default function Qualifications() {
   const [d, setD] = useState(null);
+  const [mon, setMon] = useState(null);
   useEffect(() => { fetch('/qual_dashboard.json?v=' + Date.now()).then(r => r.json()).then(setD).catch(() => setD(false)); }, []);
+  useEffect(() => { fetch('/apprentice_monthly.json?v=' + Date.now()).then(r => r.json()).then(setMon).catch(() => setMon(null)); }, []);
   if (d === false) return <div className="nd-page-inner"><div className="nd-card">Could not load qualification data.</div></div>;
   if (!d) return <div className="nd-page-inner" style={{ color: '#64748b', paddingTop: 30 }}>Loading qualification data…</div>;
 
@@ -56,6 +58,27 @@ export default function Qualifications() {
         <RankedBars data={regionBars} labelWidth={150} unit="" max={Math.max(...regionBars.map(b => b.value)) * 1.05} />
       </div>
       <div className="nd-callout">Section 5 link: rebuild the bottom rung of the skills ladder. Young people are now a minority of a programme that is well below its early-2010s peak, exactly the hollowing-out Milburn describes.</div>
+
+      {mon && mon.series && mon.series.length > 0 && (() => {
+        const s = mon.series;
+        const labels = s.map(x => x.label.startsWith('Aug') ? x.label.replace('Aug ', '') : '');
+        const lines = [
+          { name: 'Under-19 starts', color: COL.crimson, values: s.map(x => x.under19) },
+          { name: 'Level 2 (Intermediate) starts', color: COL.amber, values: s.map(x => x.level2) },
+          { name: 'All ages', color: COL.blue, values: s.map(x => x.total) },
+        ];
+        const first = s[0], last = s[s.length - 1];
+        const dropU = Math.round((1 - last.under19 / first.under19) * 100);
+        const dropL2 = Math.round((1 - last.level2 / first.level2) * 100);
+        return (
+          <div className="nd-card" style={{ marginTop: 16 }}>
+            <div className="nd-card-title">Apprenticeships as a leading indicator</div>
+            <div className="nd-card-desc">Monthly apprenticeship starts, which arrive with almost no lag, can act as an early-warning signal for NEET: under-19 and Level 2 starts are the entry rungs young people use. Over this window under-19 starts fell about {dropU}% and Level 2 about {dropL2}%, a leading sign of a thinning first rung.</div>
+            <MultiLine lines={lines} labels={labels} />
+            <p className="nd-note">Source: DfE apprenticeship monthly/quarterly starts ({first.label} to {last.label}). National, by academic year. The monthly feed updates with low lag, so this view can be refreshed far sooner than the annual NEET statistics; the relationship is indicative, with many other factors at play.</p>
+          </div>
+        );
+      })()}
 
       <h2 className="nd-h2">The resit trap: post-16 English and maths</h2>
       <div className="nd-stats">

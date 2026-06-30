@@ -188,6 +188,28 @@ export function BubbleMap({ points, width = 460, height = 580, max = 12, onHover
   );
 }
 
+// Multi-line trend over an index axis. lines:[{name,color,values:[]}], labels aligned to values; tick text shown where labels[i] is non-empty.
+export function MultiLine({ lines, labels, width = 660, height = 250, yLabel = '' }) {
+  const pad = { l: 46, r: 12, t: 14, b: 28 };
+  const n = labels.length;
+  const allV = lines.flatMap(l => l.values).filter(v => v != null);
+  const max = Math.max(...allV) * 1.08 || 1;
+  const X = i => pad.l + (n <= 1 ? 0 : i / (n - 1)) * (width - pad.l - pad.r);
+  const Y = v => pad.t + (1 - v / max) * (height - pad.t - pad.b);
+  const path = vals => vals.map((v, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(' ');
+  const ticks = [0, 0.25, 0.5, 0.75, 1].map(f => max * f);
+  return (
+    <div>
+      <svg className="nd-chart" viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', height: 'auto' }}>
+        {ticks.map((t, i) => <g key={i}><line x1={pad.l} x2={width - pad.r} y1={Y(t)} y2={Y(t)} stroke={COL.grid} /><text x={pad.l - 5} y={Y(t) + 3} textAnchor="end" fontSize="9" fill="#94a3b8">{fmt0(t)}</text></g>)}
+        {labels.map((lab, i) => lab ? <g key={i}><line x1={X(i)} x2={X(i)} y1={pad.t} y2={height - pad.b} stroke="#f1f5f9" /><text x={X(i)} y={height - 8} textAnchor="middle" fontSize="9" fill="#94a3b8">{lab}</text></g> : null)}
+        {lines.map((l, li) => <path key={li} d={path(l.values)} fill="none" stroke={l.color} strokeWidth="2.2" strokeLinejoin="round" />)}
+      </svg>
+      <Legend items={lines.map(l => ({ label: l.name, color: l.color }))} />
+    </div>
+  );
+}
+
 // Interactive scatter. points:[{x,y,c,name,extra}]. refLine draws y=x.
 export function Scatter({ points, width = 520, height = 380, xLabel, yLabel, xMax, yMax, refLine = false }) {
   const [hover, setHover] = useState(null);

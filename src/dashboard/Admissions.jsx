@@ -97,6 +97,24 @@ export default function Admissions({ data }) {
         <p className="nd-note">Covers {fmt0(totalShown)} mainstream state secondaries with a recorded admission policy and a publishable disadvantaged figure. It is not every school: special schools, alternative provision, "admission policy not collected" schools, and those where disadvantaged pupil numbers are too small to report are excluded.</p>
       </div>
 
+      {(() => {
+        const bands = [[0, 2], [2, 4], [4, 6], [6, 8], [8, 10], [10, 15], [15, 100]];
+        const labels = ['0-2', '2-4', '4-6', '6-8', '8-10', '10-15', '15%+'];
+        const counts = bands.map(() => 0);
+        a.scatter.forEach(s => { if (s.ns == null) return; const i = bands.findIndex(([lo, hi]) => s.ns >= lo && s.ns < hi); if (i >= 0) counts[i]++; });
+        const total = counts.reduce((x, y) => x + y, 0);
+        const tail = counts[5] + counts[6];
+        const groups = labels.map((l, i) => ({ label: l, bars: [{ v: counts[i], color: i >= 5 ? COL.crimson : COL.blue }] }));
+        return (
+          <div className="nd-card" style={{ marginTop: 16 }}>
+            <div className="nd-card-title">The long tail of providers</div>
+            <div className="nd-card-desc">Distribution of mainstream secondaries by their share of leavers with no sustained destination. Most cluster low, but a long tail (red) carries much higher rates: {fmt0(tail)} schools are above 10%. This tail is where targeted support and the destinations measure should bite.</div>
+            <GroupedBars groups={groups} unit="" width={620} height={230} />
+            <p className="nd-note">{fmt0(total)} mainstream state secondaries with a recorded figure. FE colleges and 16-18 providers will be added when the 16-18 destination measures are loaded.</p>
+          </div>
+        );
+      })()}
+
       <div className="nd-callout">
         <b>Policy read.</b> This is the evidence base for the "open up admissions" move in the Section 5 paper. The most selective institutions sit almost entirely outside the NEET risk, and the gap is widest for exactly the disadvantaged pupils a participation system most needs to reach. The question for the room: should the strongest sixth forms and schools be able to admit so few of the young people most likely to disengage?
       </div>
