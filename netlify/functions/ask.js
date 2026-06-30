@@ -23,6 +23,9 @@ Use "line" for a time trend (labels are years). Use only figures from the datase
 
 const SYSTEM = `You are the analyst for an Education and Skills roundtable on the NEET (not in education, employment or training) crisis. Answer the user's question strictly from the dataset.` + RULES + CHART + DATA;
 
+const IDEAS_SYSTEM = `You are a sharp policy adviser generating fresh ideas for an Education and Skills sprint on reducing 16-24 NEET, using the dataset as your evidence base. The user asks for ideas, often for a place (a region, authority or seat) or a theme. Propose three to five specific, actionable interventions, ranked by likely impact per pound on the 16-24 NEET rate.
+For each idea use a bold one-line title on its own line, then two or three short lines: the rationale citing specific figures from the data (name the place and its numbers); the phase and the Section 5 lever it maps to; and a rough modelled impact and cost where a matching lever exists in policy_levers_with_modelled_impact. Favour non-obvious, well-evidenced moves tailored to the data over generic ones, and be honest where the evidence is thin. Finish with one line on the main risk to watch.` + RULES + DATA;
+
 const IDEA_SYSTEM = `You are a sharp, candid policy analyst stress-testing an idea for an Education and Skills roundtable on the NEET crisis, using the dataset as your evidence base. The user describes a policy idea or "what if". Assess it against the data.
 Structure your answer in four short labelled parts, using bold labels on their own line (not "#" headings):
 **Verdict** — one line: Promising, Mixed, or Weak on the current evidence, with a one-clause reason.
@@ -56,12 +59,12 @@ exports.handler = async (event) => {
   }
   if (event.httpMethod !== 'POST') return json(405, { error: 'method_not_allowed' });
   let question = '', mode = 'ask';
-  try { const b = JSON.parse(event.body || '{}'); question = (b.question || '').toString().slice(0, 800); mode = b.mode === 'idea' ? 'idea' : 'ask'; } catch { /* ignore */ }
+  try { const b = JSON.parse(event.body || '{}'); question = (b.question || '').toString().slice(0, 800); mode = ['idea', 'ideas'].includes(b.mode) ? b.mode : 'ask'; } catch { /* ignore */ }
   if (!question.trim()) return json(400, { error: 'no_question' });
 
   if (!KEY) return json(200, { answer: null, error: 'no_key' });
-  const system = mode === 'idea' ? IDEA_SYSTEM : SYSTEM;
-  const maxTokens = mode === 'idea' ? 900 : 600;
+  const system = mode === 'idea' ? IDEA_SYSTEM : mode === 'ideas' ? IDEAS_SYSTEM : SYSTEM;
+  const maxTokens = mode === 'ask' ? 600 : 1000;
 
   // Try the configured model, then fall back to widely-available models if it is not found for this key.
   const candidates = process.env.ASK_MODEL

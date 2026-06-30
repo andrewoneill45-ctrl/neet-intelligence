@@ -66,6 +66,7 @@ function matchPreset(q) {
 }
 
 const IDEA_EXAMPLES = ['Mandate Risk-of-NEET screening from Year 7', 'Pause the defunding of BTECs', 'Reform the post-16 maths and English resit rule', 'Make selective sixth-form admissions more inclusive'];
+const IDEAGEN_EXAMPLES = ['Five moves for coastal authorities', 'Highest-return ideas for the North East', 'What would most help where tracking is worst?', 'Ideas to lift the lowest-attainment seats'];
 
 function renderInline(text) {
   // split on **bold** and render strong
@@ -153,8 +154,8 @@ export default function Ask({ onClose }) {
       const r = await fetch('/.netlify/functions/ask', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ question, mode }) });
       const j = await r.json();
       if (j && j.answer) { const { prose, chart } = parseAnswer(j.answer); setResult({ text: prose, aiChart: chart }); }
-      else if (mode === 'idea') {
-        setNote(j && j.error === 'no_key' ? 'Testing an idea needs the AI layer, which is not configured yet (no API key in Netlify).' : 'The AI layer could not be reached (' + ((j && (j.detail || j.error)) || 'no response') + ').');
+      else if (mode !== 'ask') {
+        setNote(j && j.error === 'no_key' ? 'This mode needs the AI layer, which is not configured yet (no API key in Netlify).' : 'The AI layer could not be reached (' + ((j && (j.detail || j.error)) || 'no response') + ').');
       } else {
         const p = PRESETS[matchPreset(question)]; setResult(p.run(data));
         setNote(j && j.error === 'no_key' ? 'The AI layer is not configured yet, so here is the closest ready-made answer.' : 'AI layer error (' + ((j && (j.detail || j.error)) || 'no response') + '). Showing the closest ready-made answer.');
@@ -176,29 +177,33 @@ export default function Ask({ onClose }) {
         </div>
         <div style={{ padding: '18px 22px' }}>
           <div style={{ display: 'inline-flex', background: '#f1f5f9', borderRadius: 10, padding: 3, marginBottom: 14 }}>
-            {[['ask', 'Ask a question'], ['idea', 'Test an idea']].map(([k, l]) => (
-              <button key={k} onClick={() => { setMode(k); setResult(null); setNote(''); }} style={{ border: 0, background: mode === k ? '#0f2440' : 'transparent', color: mode === k ? '#fff' : '#475569', fontFamily: 'inherit', fontWeight: 700, fontSize: '0.82rem', padding: '6px 14px', borderRadius: 8, cursor: 'pointer' }}>{l}</button>
+            {[['ask', 'Ask a question'], ['ideas', 'Generate ideas'], ['idea', 'Test an idea']].map(([k, l]) => (
+              <button key={k} onClick={() => { setMode(k); setResult(null); setNote(''); }} style={{ border: 0, background: mode === k ? '#0f2440' : 'transparent', color: mode === k ? '#fff' : '#475569', fontFamily: 'inherit', fontWeight: 700, fontSize: '0.82rem', padding: '6px 13px', borderRadius: 8, cursor: 'pointer' }}>{l}</button>
             ))}
           </div>
           <form onSubmit={e => { e.preventDefault(); askFree(q); }} style={{ display: 'flex', gap: 8 }}>
-            <input ref={inputRef} value={q} onChange={e => setQ(e.target.value)} placeholder={mode === 'idea' ? 'Describe an idea, e.g. mandate Risk-of-NEET screening from Year 7' : 'e.g. which coastal authorities track young people worst?'}
+            <input ref={inputRef} value={q} onChange={e => setQ(e.target.value)}
+              placeholder={mode === 'idea' ? 'Describe an idea, e.g. mandate Risk-of-NEET screening from Year 7' : mode === 'ideas' ? 'Ask for ideas, e.g. five moves for coastal authorities' : 'e.g. which coastal authorities track young people worst?'}
               style={{ flex: 1, padding: '11px 14px', borderRadius: 10, border: '1px solid #cbd5e1', fontSize: '0.92rem', fontFamily: 'inherit' }} />
-            <button type="submit" disabled={loading} style={{ padding: '0 18px', borderRadius: 10, border: 0, background: '#0f2440', color: '#fff', fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' }}>{loading ? '…' : mode === 'idea' ? 'Test' : 'Ask'}</button>
+            <button type="submit" disabled={loading} style={{ padding: '0 18px', borderRadius: 10, border: 0, background: '#0f2440', color: '#fff', fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' }}>{loading ? '…' : mode === 'idea' ? 'Test' : mode === 'ideas' ? 'Ideas' : 'Ask'}</button>
           </form>
 
           {mode === 'idea' && <p style={{ margin: '12px 0 4px', fontSize: '0.82rem', color: '#64748b' }}>Describe a policy idea or "what if". It returns a verdict, what the data says, who it reaches and the risks, and what it would take to work.</p>}
+          {mode === 'ideas' && <p style={{ margin: '12px 0 4px', fontSize: '0.82rem', color: '#64748b' }}>Ask for ideas for a place or theme. It proposes ranked, data-grounded interventions tied to the evidence and a rough modelled impact.</p>}
 
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginTop: mode === 'idea' ? 6 : 14 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginTop: mode === 'ask' ? 14 : 6 }}>
             {mode === 'idea'
               ? IDEA_EXAMPLES.map((ex, i) => <button key={i} onClick={() => { setQ(ex); askFree(ex); }} className="nd-chip" style={{ cursor: 'pointer' }}>{ex}</button>)
-              : PRESETS.map((p, i) => <button key={i} onClick={() => runPreset(i)} className="nd-chip" style={{ cursor: 'pointer' }}>{p.label}</button>)}
+              : mode === 'ideas'
+                ? IDEAGEN_EXAMPLES.map((ex, i) => <button key={i} onClick={() => { setQ(ex); askFree(ex); }} className="nd-chip" style={{ cursor: 'pointer' }}>{ex}</button>)
+                : PRESETS.map((p, i) => <button key={i} onClick={() => runPreset(i)} className="nd-chip" style={{ cursor: 'pointer' }}>{p.label}</button>)}
           </div>
 
           {note && <div style={{ marginTop: 16, fontSize: '0.8rem', color: '#9a3412', background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 8, padding: '8px 12px' }}>{note}</div>}
           {loading && (
             <div className="nd-thinking">
               <span className="nd-spinner" />
-              <span className="nd-pulse">{mode === 'idea' ? 'Testing the idea against the data…' : 'Reading the data and writing an answer…'}</span>
+              <span className="nd-pulse">{mode === 'idea' ? 'Testing the idea against the data…' : mode === 'ideas' ? 'Generating ideas from the data…' : 'Reading the data and writing an answer…'}</span>
             </div>
           )}
 
