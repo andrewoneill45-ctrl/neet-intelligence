@@ -119,7 +119,10 @@ export default function Qualifications() {
           <h2 className="nd-h2">The stock: NEET and qualifications</h2>
           <div className="nd-card">
             <div className="nd-card-title">Out of work, and under-qualified</div>
-            <div className="nd-card-desc">58% of NEET 16-24 year olds have no Level 3 qualification, which is why the stock problem and the qualifications problem are the same problem (ONS, in the evidence pack). The Census picture below is for all working-age adults who are unemployed or economically inactive, a broader proxy: {pct(d.neet_qual.pct_below_l2)} are below Level 2.</div>
+            <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 10, padding: '10px 14px', margin: '4px 0 12px', fontSize: '0.82rem', color: '#9a3412', lineHeight: 1.45 }}>
+              <b>Read with care:</b> the Census chart below covers all working-age adults out of work, not just young people, so it overstates the no-qualifications share (older cohorts skew it). It is directional context only. The reliable young-person figure is the 58% headline.
+            </div>
+            <div className="nd-card-desc">58% of NEET 16-24 year olds have no Level 3 qualification, which is why the stock problem and the qualifications problem are the same problem (ONS, in the evidence pack). On the broader Census measure, {pct(d.neet_qual.pct_below_l2)} of out-of-work adults are below Level 2.</div>
             <RankedBars data={d.neet_qual.breakdown.map(q => ({ label: q.qual, value: q.pct, color: ['No qualifications', 'Level 1 / entry'].includes(q.qual) ? COL.crimson : COL.blue }))} labelWidth={130} unit="%" max={Math.max(...d.neet_qual.breakdown.map(q => q.pct)) * 1.1} />
             <p className="nd-note">Source: ONS Census 2021 (RM048). All-ages caveat: this counts everyone out of work, not just young people, so it overstates the no-qualifications share (older cohorts). Treat as directional context for the NEET-qualification overlap; the 58% figure is the young-person measure.</p>
           </div>
