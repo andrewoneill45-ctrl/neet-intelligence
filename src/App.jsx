@@ -387,13 +387,13 @@ const App = ({ initialQuery }) => {
       )}
 
       {!showLanding && (
-        <button className="stats-toggle" style={{ top: 116, background: colorByNeet ? '#b91c4a' : undefined, color: colorByNeet ? '#fff' : undefined }} onClick={() => { setColorByNeet(v => !v); setColorByAbsence(false); }} title="Colour schools by share of leavers with no sustained destination">
+        <button className="stats-toggle" style={{ top: 124, background: colorByNeet ? '#b91c4a' : undefined, color: colorByNeet ? '#fff' : undefined }} onClick={() => { setColorByNeet(v => !v); setColorByAbsence(false); }} title="Colour schools by share of leavers with no sustained destination">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
           NEET risk
         </button>
       )}
       {!showLanding && (
-        <button className="stats-toggle" style={{ top: 158, background: colorByAbsence ? '#b91c4a' : undefined, color: colorByAbsence ? '#fff' : undefined }} onClick={() => { setColorByAbsence(v => !v); setColorByNeet(false); }} title="Colour schools by persistent absence rate">
+        <button className="stats-toggle" style={{ top: 188, background: colorByAbsence ? '#b91c4a' : undefined, color: colorByAbsence ? '#fff' : undefined }} onClick={() => { setColorByAbsence(v => !v); setColorByNeet(false); }} title="Colour schools by persistent absence rate">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
           Absence
         </button>
