@@ -112,11 +112,42 @@ function MD({ text }) {
   return <div style={{ fontSize: '0.95rem', color: '#1e293b' }}>{blocks}</div>;
 }
 
+const CMAP = { crimson: '#b91c4a', amber: '#e8920e', blue: '#1d5a9e', green: '#0d7a42', navy: '#0f2440', slate: '#64748b', purple: '#7c3aed' };
+
+// Parse an answer into ordered segments: prose, stat strips, and charts, so it renders like an infographic.
 function parseAnswer(text) {
-  const m = text.match(/```(?:chart|json)\s*([\s\S]*?)```/i);
-  let chart = null, prose = text;
-  if (m) { try { chart = JSON.parse(m[1].trim()); } catch { /* ignore */ } prose = text.replace(m[0], '').trim(); }
-  return { prose, chart };
+  const re = /```(chart|stats|json)\s*([\s\S]*?)```/gi;
+  const segs = []; let last = 0, m;
+  while ((m = re.exec(text)) !== null) {
+    const before = text.slice(last, m.index).trim();
+    if (before) segs.push({ type: 'prose', text: before });
+    let data = null; try { data = JSON.parse(m[2].trim()); } catch { /* ignore */ }
+    if (data) {
+      if (m[1].toLowerCase() === 'stats' && Array.isArray(data)) segs.push({ type: 'stats', items: data });
+      else segs.push({ type: 'chart', spec: data });
+    }
+    last = re.lastIndex;
+  }
+  const tail = text.slice(last).trim();
+  if (tail) segs.push({ type: 'prose', text: tail });
+  return segs.length ? segs : [{ type: 'prose', text }];
+}
+
+function StatStrip({ items }) {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 10, margin: '6px 0 14px' }}>
+      {items.slice(0, 4).map((s, i) => {
+        const c = CMAP[s.color] || COL.blue;
+        return (
+          <div key={i} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: '13px 15px', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, background: c }} />
+            <div style={{ fontSize: '1.75rem', fontWeight: 800, letterSpacing: '-0.02em', color: c, lineHeight: 1.05 }}>{s.value}</div>
+            <div style={{ fontSize: '0.74rem', color: '#475569', fontWeight: 600, marginTop: 4, lineHeight: 1.3 }}>{s.label}</div>
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 function AnswerChart({ chart }) {
@@ -153,7 +184,7 @@ export default function Ask({ onClose }) {
     try {
       const r = await fetch('/.netlify/functions/ask', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ question, mode }) });
       const j = await r.json();
-      if (j && j.answer) { const { prose, chart } = parseAnswer(j.answer); setResult({ text: prose, aiChart: chart }); }
+      if (j && j.answer) { setResult({ segments: parseAnswer(j.answer) }); }
       else if (mode !== 'ask') {
         setNote(j && j.error === 'no_key' ? 'This mode needs the AI layer, which is not configured yet (no API key in Netlify).' : 'The AI layer could not be reached (' + ((j && (j.detail || j.error)) || 'no response') + ').');
       } else {
@@ -210,10 +241,17 @@ export default function Ask({ onClose }) {
           {result && !loading && (
             <div style={{ marginTop: 18, borderTop: '1px solid #f1f5f9', paddingTop: 16 }}>
               <div style={{ background: '#f8fafc', border: '1px solid #e8edf3', borderRadius: 12, padding: '16px 18px' }}>
-                <MD text={result.text} />
-                {result.aiChart && <AnswerChart chart={result.aiChart} />}
-                {result.bars && <div style={{ marginTop: 12 }}><RankedBars data={result.bars} labelWidth={170} max={Math.max(...result.bars.map(b => b.value)) * 1.05} /></div>}
-                {result.trend && <div style={{ marginTop: 12, maxWidth: 520 }}><TrendLine series={result.trend} color={COL.crimson} /></div>}
+                {result.segments
+                  ? result.segments.map((seg, i) => (
+                    seg.type === 'stats' ? <StatStrip key={i} items={seg.items} />
+                      : seg.type === 'chart' ? <AnswerChart key={i} chart={seg.spec} />
+                        : <MD key={i} text={seg.text} />
+                  ))
+                  : <>
+                    <MD text={result.text} />
+                    {result.bars && <div style={{ marginTop: 12 }}><RankedBars data={result.bars} labelWidth={170} max={Math.max(...result.bars.map(b => b.value)) * 1.05} /></div>}
+                    {result.trend && <div style={{ marginTop: 12, maxWidth: 520 }}><TrendLine series={result.trend} color={COL.crimson} /></div>}
+                  </>}
               </div>
               <div style={{ marginTop: 8, fontSize: '0.72rem', color: '#94a3b8' }}>Generated from the published DfE figures in this dashboard. Check key numbers before quoting.</div>
             </div>

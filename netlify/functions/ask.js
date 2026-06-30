@@ -12,19 +12,25 @@ const RULES = `
 - Use ONLY the figures in the data. Never invent or estimate numbers that are not present. If something is not derivable from the data, say so.
 - "NEET or not known" combines confirmed NEET with "activity not known" (a tracking gap); a high rate driven by "not known" is a tracking problem, not measured disengagement. "No sustained destination" is the school-level NEET proxy from KS4 destinations (2022/23).
 - British English. No em dashes. Percentages to one decimal place. This is for senior policy officials: rigorous and neutral.
-FORMATTING (important): Keep it short, roughly 120 to 180 words. Write in plain prose. Do NOT use markdown tables or "#" headings. If you must list places, use at most five bullet points, each one short line ("Blackpool: 8.9%"). Lead with the direct answer.`;
+FORMATTING: keep prose tight and punchy, no markdown tables or "#" headings, use bold labels and short bullets. Lead with the direct answer.`;
 
-const CHART = `
-CHART: If the answer involves a ranking, comparison, or a trend over time, append exactly ONE chart at the very end, as a fenced code block labelled chart containing compact JSON:
+const VISUAL = `
+VISUAL OUTPUT (make answers vivid and impressive): you may embed fenced blocks the interface renders as graphics. Use them generously, but only with figures present in the dataset.
+1) Lead most answers with a headline stat strip:
+\`\`\`stats
+[{"value":"21.5%","label":"Dudley: NEET or not known","color":"crimson"},{"value":"19.1%","label":"of which, not known","color":"amber"}]
+\`\`\`
+Use 2 to 4 stats. "value" is a short string (e.g. "337,140", "5x", "£15"). "color" is one of crimson, amber, blue, green, navy, purple.
+2) Add one or more charts for any ranking, comparison or trend:
 \`\`\`chart
 {"type":"bar","title":"Confirmed NEET, weakest coastal authorities","unit":"%","data":[{"label":"Blackpool","value":7.6},{"label":"Medway","value":6.6}]}
 \`\`\`
-Use "line" for a time trend (labels are years). Use only figures from the dataset, at most 8 data points, ordered most to least. Put nothing after the chart block. If a chart would not help, omit it entirely.`;
+Use "type":"line" for a time trend (labels are years). At most 8 data points per chart; you may include more than one chart. Keep the prose between blocks to a sentence or two. A great answer reads like a mini infographic: a stat strip, a sharp sentence, a chart, a short interpretation. Never invent numbers.`;
 
-const SYSTEM = `You are the analyst for an Education and Skills roundtable on the NEET (not in education, employment or training) crisis. Answer the user's question strictly from the dataset.` + RULES + CHART + DATA;
+const SYSTEM = `You are the analyst for an Education and Skills roundtable on the NEET (not in education, employment or training) crisis. Answer the user's question strictly from the dataset.` + RULES + VISUAL + DATA;
 
 const IDEAS_SYSTEM = `You are a sharp policy adviser generating fresh ideas for an Education and Skills sprint on reducing 16-24 NEET, using the dataset as your evidence base. The user asks for ideas, often for a place (a region, authority or seat) or a theme. Propose three to five specific, actionable interventions, ranked by likely impact per pound on the 16-24 NEET rate.
-For each idea use a bold one-line title on its own line, then two or three short lines: the rationale citing specific figures from the data (name the place and its numbers); the phase and the Section 5 lever it maps to; and a rough modelled impact and cost where a matching lever exists in policy_levers_with_modelled_impact. Favour non-obvious, well-evidenced moves tailored to the data over generic ones, and be honest where the evidence is thin. Finish with one line on the main risk to watch.` + RULES + DATA;
+Open with a stat strip of the key numbers for the place or theme, then for each idea a bold one-line title on its own line, two or three short lines (rationale citing specific figures and naming the place; the phase and Section 5 lever; a rough modelled impact and cost from policy_levers_with_modelled_impact), and add a chart where it sharpens the case. Favour non-obvious, well-evidenced moves over generic ones; be honest where evidence is thin. Finish with one line on the main risk to watch.` + RULES + VISUAL + DATA;
 
 const IDEA_SYSTEM = `You are a sharp, candid policy analyst stress-testing an idea for an Education and Skills roundtable on the NEET crisis, using the dataset as your evidence base. The user describes a policy idea or "what if". Assess it against the data.
 Structure your answer in four short labelled parts, using bold labels on their own line (not "#" headings):
@@ -32,7 +38,7 @@ Structure your answer in four short labelled parts, using bold labels on their o
 **What the data says** — 2 to 4 sentences citing specific figures from the dataset that bear on the idea.
 **Who it reaches and risks** — who would benefit, who it would miss, and the main risks or unintended effects.
 **To make it work** — 1 to 2 concrete conditions for success.
-Be honest, including when the data is silent or only partly relevant. Tie back to the real numbers wherever you can.` + RULES + DATA;
+Be honest, including when the data is silent or only partly relevant. Tie back to the real numbers wherever you can. You may open with a stat strip and add a chart where it helps.` + RULES + VISUAL + DATA;
 
 exports.handler = async (event) => {
   const KEY = process.env.ANTHROPIC_API_KEY || process.env.VITE_ANTHROPIC_KEY || process.env.ANTHROPIC_KEY;
