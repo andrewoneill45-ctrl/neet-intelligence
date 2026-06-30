@@ -4,15 +4,16 @@ import { COL, fmt0, fmt1, pct } from './charts';
 // Illustrative levers. "red" = modelled relative reduction in NEET at full national rollout.
 // "costM" = indicative annual cost at full rollout (£m). All adjustable via the rollout sliders.
 const LEVERS = [
-  { id: 'screen', name: 'Mandatory Year 7 risk screening + mentoring', red: 0.06, costM: 40, ev: 'Early identification with a sustained mentor. Milburn / Section 5.' },
-  { id: 'workex', name: 'Work-experience entitlement (4+ employer contacts)', red: 0.12, costM: 90, ev: '4+ employer contacts: 5x less likely to be NEET (Education & Employers, 2014). Modelled conservatively.' },
-  { id: 'apprent', name: 'Rebuild apprenticeships and the first rung', red: 0.10, costM: 280, ev: 'Apprenticeships: 10 extra in work per 100 supported (Youth Futures Foundation, 2026).' },
-  { id: 'resit', name: 'Reform the post-16 maths and English resit', red: 0.04, costM: 35, ev: 'Only about a third improve on resit (DfE, 2024-25). Stepping-stone routes.' },
-  { id: 'vocational', name: 'High-quality vocational pathways at KS4', red: 0.05, costM: 130, ev: 'Tech-award takers have 23% lower unauthorised absence (DfE/Ofqual).' },
-  { id: 'admissions', name: 'Open up admissions to the best schools', red: 0.03, costM: 25, ev: 'Spread NEET risk away from the schools that carry most of it (KS4 destinations).' },
+  { id: 'attendance', name: 'Tackle persistent absence (attendance support and mentors)', red: 0.09, costM: 110, ev: 'Persistent absence is the second-strongest NEET risk factor (+10ppt; DfE linked-data analysis). Effect modelled as an upper-bound assumption, since reducing absence is not the same as removing the association.' },
+  { id: 'screen', name: 'Mandatory Year 7 risk screening + mentoring', red: 0.06, costM: 40, ev: 'Targets the strongest early risk factors, EHC plan and absence (DfE risk-factor analysis). Early identification with a sustained mentor.' },
+  { id: 'workex', name: 'Work-experience entitlement (4+ employer contacts)', red: 0.12, costM: 90, ev: 'Four or more employer contacts: five times less likely to be NEET (Education & Employers, 2014). Modelled conservatively.' },
+  { id: 'apprent', name: 'Rebuild apprenticeships and the first rung', red: 0.10, costM: 280, ev: 'Apprenticeships add 10 in work per 100 supported, the most effective youth intervention (Youth Futures Foundation, 2026).' },
+  { id: 'resit', name: 'Reform the post-16 maths and English resit', red: 0.04, costM: 35, ev: 'Only about a third improve on resit (DfE, 2024-25). Stepping-stone routes reduce repeated failure.' },
+  { id: 'vocational', name: 'High-quality vocational pathways at KS4', red: 0.05, costM: 130, ev: 'Tech-award takers have 23% lower unauthorised absence (DfE/Ofqual). Engagement and a real route.' },
+  { id: 'admissions', name: 'Open up admissions to the best schools', red: 0.03, costM: 25, ev: 'Spread NEET risk away from the schools that carry most of it (KS4 destination measures).' },
 ];
 
-const RECOMMENDED = { screen: 100, workex: 80, apprent: 60, resit: 100, vocational: 50, admissions: 40 };
+const RECOMMENDED = { attendance: 70, screen: 100, workex: 80, apprent: 60, resit: 100, vocational: 50, admissions: 40 };
 
 export default function Simulator({ data }) {
   const baseRate = data.national.latest.neetnk;
@@ -71,7 +72,8 @@ export default function Simulator({ data }) {
             <div style={{ fontSize: '0.78rem', color: '#64748b' }}>Rollout <b style={{ color: '#0f2440' }}>{intensity[l.id]}%</b> · up to <b style={{ color: COL.green }}>−{fmt0(Math.round(baseline * l.red))}</b> at full</div>
           </div>
           <input type="range" min="0" max="100" step="5" value={intensity[l.id]} onChange={e => set(l.id, parseInt(e.target.value))} style={{ width: '100%', accentColor: '#0f2440', marginTop: 8 }} />
-          <div style={{ fontSize: '0.74rem', color: '#94a3b8', marginTop: 4 }}>{l.ev} · indicative full-rollout cost £{l.costM}m/yr</div>
+          <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: 4, lineHeight: 1.45 }}><b style={{ color: '#475569' }}>Evidence:</b> {l.ev}</div>
+          <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: 2 }}>Indicative full-rollout cost £{l.costM}m/yr · max modelled effect −{fmt1(l.red * 100)}% of NEET</div>
         </div>
       ))}
 
