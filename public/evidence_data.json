@@ -1,0 +1,59 @@
+{
+  "source_note": "Ready to Work sprint evidence pack (July 2026). Each item carries its original DfE/ONS/OECD/research source.",
+  "intro": { "neet_16_24": "1.01m", "without_l3_pct": 58, "without_l3_count": "591k" },
+  "risk_factors": {
+    "17-19": [
+      { "f": "Has an EHC plan", "ppt": 16 },
+      { "f": "Persistently absent in KS4", "ppt": 10 },
+      { "f": "Low GCSE attainment", "ppt": 7 },
+      { "f": "Persistently absent in KS3", "ppt": 7 },
+      { "f": "Low engagement", "ppt": 6 },
+      { "f": "Parent has no qualifications", "ppt": 6 },
+      { "f": "Social services contact", "ppt": 5 },
+      { "f": "Parent has a disability", "ppt": 5 },
+      { "f": "No leisure activities", "ppt": 4 }
+    ],
+    "20-24": [
+      { "f": "Has an EHC plan", "ppt": 20 },
+      { "f": "No leisure activities", "ppt": 10 },
+      { "f": "Has SEN", "ppt": 8 },
+      { "f": "Persistently absent in KS4", "ppt": 7 },
+      { "f": "Parent has no qualifications", "ppt": 7 },
+      { "f": "Low GCSE attainment", "ppt": 5 }
+    ]
+  },
+  "phases": [
+    {
+      "key": "prepare", "ages": "11-16", "title": "Prepare", "link": { "label": "See SEND & disadvantage", "view": "send" },
+      "blurb": "Risk is set in school. The strongest predictors of becoming NEET are need and absence, and the foundations of engagement, including vocational tasters and employer contact, are laid here.",
+      "cards": [
+        { "stat": "23%", "label": "lower unauthorised absence for pupils who take at least one tech award, yet 16% of schools do not offer them and 59% of employers do not understand them", "source": "DfE / Ofqual (2019, 2025)" },
+        { "stat": "5x", "label": "less likely to be NEET for pupils who recall four or more employer contacts at school, controlling for qualifications and background", "source": "Education and Employers (2014); CEC (2021)" },
+        { "stat": "£60 → £150", "label": "cost versus net benefit per work placement: good value, but it is repeated employer contact that lowers NEET risk", "source": "Social Market Foundation (2023)" },
+        { "stat": "62% vs 93%", "label": "sustained destination one year after KS4 for alternative provision versus mainstream pupils", "source": "DfE, Longer term destinations (2026)" }
+      ]
+    },
+    {
+      "key": "transition", "ages": "16-18", "title": "Transition", "link": { "label": "See Qualifications", "view": "qualifications" },
+      "blurb": "The handover from school to college and work. Funding rules, a thin apprenticeship offer and a long tail of weak providers leave too many without a sustained destination.",
+      "cards": [
+        { "stat": "No ringfence", "label": "the 16-19 funding formula uses lagged data and does not fully reimburse in-year growth, with no ringfenced NEET re-engagement funding", "source": "DfE, 16 to 19 funding (2026)" },
+        { "stat": "£7,860 vs £6,595", "label": "spend per student in 16-18 colleges versus school sixth forms; yet the median FE teacher earns £10,400 less than a secondary teacher", "source": "IFS / NFER (2026)" },
+        { "stat": "Halved", "label": "the 16-17 employment rate has more than halved since the 1990s", "source": "ONS, Labour Force Survey (2026)" },
+        { "stat": "-40%", "label": "under-19 apprenticeship starts are near a historic low, about 40% below their early-2010s peak", "source": "DfE, Apprenticeships (2026)" },
+        { "stat": "80%", "label": "sustained destination rate for the 16-18 Level 3 cohort from FE colleges, the lowest of any setting, against 88% for mainstream schools", "source": "DfE, 16-18 destination measures (2026)" }
+      ]
+    },
+    {
+      "key": "deliver", "ages": "18-24", "title": "Deliver", "link": { "label": "See International", "view": "international" },
+      "blurb": "Turning participation into work. Apprenticeships have the strongest returns of any youth employment route, but starts have collapsed and university returns are uneven.",
+      "cards": [
+        { "stat": "15%", "label": "of 18-year-olds are NEET; 34% are in higher education and 20% in work without education or training", "source": "DfE, Participation 16-18 (2025)" },
+        { "stat": "10 per 100", "label": "extra young people in work for every 100 supported through apprenticeships, the most effective youth employment intervention (wage subsidies: 3)", "source": "Youth Futures Foundation (2026)" },
+        { "stat": "£15 per £1", "label": "return on a Level 2 apprenticeship for 19-23 year olds; youth apprenticeships cost about £11k each", "source": "IfATE / ESFA (2020); DfE (2025)" },
+        { "stat": "+7-8 ppt", "label": "more likely to be continuously employed at 25 for Level 3 apprenticeship completers than similar peers with a Level 2 qualification", "source": "CVER (2017); Sheffield (2022)" },
+        { "stat": "20% / 30%", "label": "of women and men respectively are financially worse off for going to university, with returns varying hugely by subject", "source": "IFS (2026)" }
+      ]
+    }
+  ]
+}

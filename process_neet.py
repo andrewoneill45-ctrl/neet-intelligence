@@ -307,6 +307,18 @@ if os.path.exists(_wwc_path):
         "note": "From the Independent Inquiry into White Working Class Educational Outcomes (June 2026). Compares white British FSM pupils with non-FSM pupils. Always attribute to this inquiry.",
     }
 
+# Fold in the Ready to Work sprint evidence pack (if present)
+_ev_path = OUT + "/evidence_data.json"
+if os.path.exists(_ev_path):
+    ev = json.load(open(_ev_path))
+    brief["ready_to_work_evidence_pack"] = {
+        "framing": "Three stages: Prepare (11-16), Transition (16-18), Deliver (18-24).",
+        "neet_16_24": ev["intro"]["neet_16_24"], "without_level3_pct": ev["intro"]["without_l3_pct"],
+        "neet_risk_factors_ppt": ev["risk_factors"],
+        "stage_evidence": {p["title"]: [c["stat"] + " — " + c["label"] for c in p["cards"]] for p in ev["phases"]},
+        "note": "From the Ready to Work sprint evidence pack (July 2026). Attribute to it. Risk factors are percentage-point increases in NEET rate, all else held constant.",
+    }
+
 FN = HERE + "/netlify/functions"
 os.makedirs(FN, exist_ok=True)
 json.dump(brief, open(FN+"/neet-brief.json","w"), separators=(",",":"))
