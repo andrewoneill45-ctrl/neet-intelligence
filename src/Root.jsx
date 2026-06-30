@@ -8,6 +8,7 @@ import './dashboard/dashboard.css';
 const NAV = [
   { type: 'tab', k: 'overview', label: 'Overview' },
   { type: 'tab', k: 'readytowork', label: 'Ready to Work' },
+  { type: 'tab', k: 'simulator', label: 'Simulator' },
   { type: 'group', label: 'Explore', items: [
     { k: 'map', label: 'Map Explorer' },
     { k: 'geography', label: 'Geography' },
