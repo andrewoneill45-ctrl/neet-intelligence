@@ -102,6 +102,30 @@ export default function Qualifications() {
         <Legend items={[{ label: 'Academic', color: COL.blue }, { label: 'Vocational / technical', color: COL.crimson }]} />
       </div>
 
+      {d.dest1618 && d.dest1618.by_type && (
+        <>
+          <h2 className="nd-h2">16-18 destinations: where colleges sit</h2>
+          <div className="nd-card">
+            <div className="nd-card-title">Sustained destination rate by provider type (16-18, 2022/23)</div>
+            <div className="nd-card-desc">Share of 16-18 leavers in a sustained education, apprenticeship or employment destination. FE colleges sit lowest, partly because they take the broadest and toughest cohorts, which is the case for a destinations measure that credits distance travelled rather than punishing them.</div>
+            <RankedBars data={d.dest1618.by_type.map(t => ({ label: t.type, value: t.sustained, color: t.type === 'FE colleges' ? COL.crimson : COL.blue, sub: fmt0(t.n) }))} labelWidth={200} unit="%" max={100} />
+            <p className="nd-note">Source: DfE 16-18 destination measures, 2023/24 release (2022/23 cohort). {fmt0(d.dest1618.total_providers)} providers, institution-level. FE colleges and sixth-form colleges now included alongside school sixth forms.</p>
+          </div>
+        </>
+      )}
+
+      {d.neet_qual && d.neet_qual.breakdown && (
+        <>
+          <h2 className="nd-h2">The stock: NEET and qualifications</h2>
+          <div className="nd-card">
+            <div className="nd-card-title">Out of work, and under-qualified</div>
+            <div className="nd-card-desc">58% of NEET 16-24 year olds have no Level 3 qualification, which is why the stock problem and the qualifications problem are the same problem (ONS, in the evidence pack). The Census picture below is for all working-age adults who are unemployed or economically inactive, a broader proxy: {pct(d.neet_qual.pct_below_l2)} are below Level 2.</div>
+            <RankedBars data={d.neet_qual.breakdown.map(q => ({ label: q.qual, value: q.pct, color: ['No qualifications', 'Level 1 / entry'].includes(q.qual) ? COL.crimson : COL.blue }))} labelWidth={130} unit="%" max={Math.max(...d.neet_qual.breakdown.map(q => q.pct)) * 1.1} />
+            <p className="nd-note">Source: ONS Census 2021 (RM048). All-ages caveat: this counts everyone out of work, not just young people, so it overstates the no-qualifications share (older cohorts). Treat as directional context for the NEET-qualification overlap; the 58% figure is the young-person measure.</p>
+          </div>
+        </>
+      )}
+
       <h2 className="nd-h2">KS4 context ({d.meta.ks4_year})</h2>
       <div className="nd-stats">
         <StatCard value={fmt1(d.ks4.att8)} label="Average Attainment 8" accent={COL.blue} />
