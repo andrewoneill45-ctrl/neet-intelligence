@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import Map, { Source, Layer } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { StackedBars, SortTable, RankedBars, TrendLine, Scatter, COL, pct, fmt0, fmt1, rateColor } from './charts';
@@ -158,6 +158,9 @@ export default function Geography({ data, jumpToMap }) {
   const [selectedLa, setSelectedLa] = useState(null);
   const [xDriver, setXDriver] = useState('pa');
   const [pinned, setPinned] = useState([]);
+  const [cons, setCons] = useState(null);
+  const [seatQ, setSeatQ] = useState('');
+  useEffect(() => { fetch('/constituency.json?v=' + Date.now()).then(r => r.json()).then(setCons).catch(() => setCons(null)); }, []);
   const pin = (la) => setPinned(p => (p.find(x => x.name === la.name) || p.length >= 3) ? p : [...p, la]);
   const unpin = (name) => setPinned(p => p.filter(x => x.name !== name));
   const byName = useMemo(() => Object.fromEntries(data.las.map(l => [l.name, l])), [data.las]);
@@ -234,7 +237,7 @@ export default function Geography({ data, jumpToMap }) {
               x: l.drivers[xDriver], y: l.neetnk, c: rateColor(l.neetnk, 12), name: l.name,
               extra: `${DRIVERS[xDriver].label} ${fmt1(l.drivers[xDriver])}${DRIVERS[xDriver].unit} · NEET/NK ${fmt1(l.neetnk)}%`,
             }))}
-            xLabel={DRIVERS[xDriver].label} yLabel="NEET or not known (%)" xMax={DRIVERS[xDriver].max} yMax={24} />
+            xLabel={DRIVERS[xDriver].label} yLabel="NEET or not known (%)" xMax={DRIVERS[xDriver].max} yMax={24} fit />
         </div>
         <p className="nd-note">Drivers: persistent and overall absence are state-funded secondary 2024/25; suspension rate per 100 pupils 2024/25; EHC plans per 1,000 school pupils. Sources: DfE absence, suspensions and EHCP releases.</p>
       </div>
@@ -250,6 +253,30 @@ export default function Geography({ data, jumpToMap }) {
       <div className="nd-card" style={{ padding: '6px 10px', maxHeight: 460, overflowY: 'auto' }}>
         <SortTable cols={cols} rows={tableRows} initialSort="neetnk" onRowClick={setSelectedLa} />
       </div>
+
+      {cons && cons.length > 0 && (
+        <>
+          <h2 className="nd-h2">Find your seat: attainment by constituency</h2>
+          <p className="nd-sub" style={{ marginBottom: 12 }}>KS4 attainment by parliamentary constituency (2023/24), the strongest predictor of becoming NEET. Search for a seat or sort any column.</p>
+          <div className="nd-chips">
+            <input value={seatQ} onChange={e => setSeatQ(e.target.value)} placeholder="Search a constituency..." style={{ padding: '7px 12px', borderRadius: 99, border: '1px solid #cbd5e1', fontSize: '0.82rem', fontFamily: 'inherit', minWidth: 220 }} />
+            <span style={{ alignSelf: 'center', fontSize: '0.78rem', color: '#94a3b8' }}>{cons.filter(c => c.name.toLowerCase().includes(seatQ.toLowerCase())).length} of {cons.length} seats</span>
+          </div>
+          <div className="nd-card" style={{ padding: '6px 10px', maxHeight: 440, overflowY: 'auto' }}>
+            <SortTable initialSort="att8" initialDir="asc"
+              cols={[
+                { key: 'name', label: 'Constituency' },
+                { key: 'att8', label: 'Attainment 8', num: true, render: r => r.att8 == null ? '–' : fmt1(r.att8) },
+                { key: 'basics4', label: '4+ Eng & Ma', num: true, render: r => r.basics4 == null ? '–' : fmt1(r.basics4) + '%' },
+                { key: 'basics5', label: '5+ Eng & Ma', num: true, render: r => r.basics5 == null ? '–' : fmt1(r.basics5) + '%' },
+                { key: 'ebacc', label: 'EBacc entry', num: true, render: r => r.ebacc == null ? '–' : fmt1(r.ebacc) + '%' },
+                { key: 'pupils', label: 'Pupils', num: true, render: r => fmt0(r.pupils) },
+              ]}
+              rows={cons.filter(c => c.name.toLowerCase().includes(seatQ.toLowerCase()))} />
+          </div>
+          <p className="nd-note">Source: DfE KS4 performance 2023/24, by constituency (school location, state-funded). Lowest Attainment 8 shown first; lower attainment is the strongest single predictor of becoming NEET.</p>
+        </>
+      )}
 
       <LaDrawer la={selectedLa} onClose={() => setSelectedLa(null)} onPin={pin} jumpToMap={jumpToMap} pinned={pinned} />
       <p className="nd-note">Source: DfE, Participation and NEET age 16 to 17 by local authority, 2024/25 (figures are an average of Dec 2024 to Feb 2025). Coastal is an indicative list of coastal upper-tier authorities for discussion, not an official classification. Tendring/Clacton sit within Essex and Rhyl within Wales, so are not separately shown.</p>

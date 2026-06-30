@@ -78,6 +78,26 @@ export default function Simulator() {
         </div>
       </div>
 
+      {reduced > 0 && (() => {
+        const GROUP = { attendance: 'Prevention (flow)', screen: 'Prevention (flow)', workex: 'Prevention (flow)', vocational: 'Prevention (flow)', resit: 'Transition', admissions: 'Transition', apprent: 'Re-engagement (stock)', tracking: 'Re-engagement (stock)' };
+        const COLG = { 'Prevention (flow)': COL.blue, 'Transition': '#7c3aed', 'Re-engagement (stock)': COL.green };
+        const w = {}; LEVERS.forEach(l => { const wt = l.red * intensity[l.id] / 100; if (wt > 0) w[GROUP[l.id]] = (w[GROUP[l.id]] || 0) + wt; });
+        const tot = Object.values(w).reduce((a, b) => a + b, 0);
+        const order = ['Prevention (flow)', 'Transition', 'Re-engagement (stock)'].filter(g => w[g]);
+        return (
+          <div className="nd-card" style={{ marginTop: 14 }}>
+            <div className="nd-card-title">Where the reduction comes from: stock vs flow</div>
+            <div className="nd-card-desc">Splitting the modelled reduction by what each lever does, one of the five cross-cutting questions. Prevention stops the next cohort becoming NEET (the flow); re-engagement reaches those already NEET (the stock).</div>
+            <div style={{ height: 26, borderRadius: 8, overflow: 'hidden', display: 'flex', background: '#eef2f7' }}>
+              {order.map(g => <div key={g} style={{ width: `${w[g] / tot * 100}%`, background: COLG[g], display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '0.7rem', fontWeight: 700 }}>{w[g] / tot > 0.12 ? `${Math.round(w[g] / tot * 100)}%` : ''}</div>)}
+            </div>
+            <div style={{ display: 'flex', gap: 14, marginTop: 8, fontSize: '0.74rem', color: '#475569', flexWrap: 'wrap' }}>
+              {order.map(g => <span key={g}><span style={{ display: 'inline-block', width: 10, height: 10, background: COLG[g], borderRadius: 2, marginRight: 5 }} />{g} {Math.round(w[g] / tot * 100)}% (~{fmt0(reduced * w[g] / tot)})</span>)}
+            </div>
+          </div>
+        );
+      })()}
+
       <div style={{ display: 'flex', gap: 8, margin: '16px 0', flexWrap: 'wrap' }}>
         <button className="nd-chip active" onClick={() => apply(RECOMMENDED)} style={{ cursor: 'pointer' }}>Apply a recommended package</button>
         <button className="nd-chip" onClick={() => apply({})} style={{ cursor: 'pointer' }}>Reset all</button>

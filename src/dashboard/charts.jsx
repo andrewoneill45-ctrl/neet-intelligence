@@ -211,7 +211,7 @@ export function MultiLine({ lines, labels, width = 660, height = 250, yLabel = '
 }
 
 // Interactive scatter. points:[{x,y,c,name,extra}]. refLine draws y=x.
-export function Scatter({ points, width = 520, height = 380, xLabel, yLabel, xMax, yMax, refLine = false }) {
+export function Scatter({ points, width = 520, height = 380, xLabel, yLabel, xMax, yMax, refLine = false, fit = false }) {
   const [hover, setHover] = useState(null);
   const pad = { l: 44, r: 14, t: 14, b: 38 };
   const mx = xMax || Math.max(...points.map(p => p.x)) * 1.05 || 1;
@@ -219,6 +219,21 @@ export function Scatter({ points, width = 520, height = 380, xLabel, yLabel, xMa
   const X = v => pad.l + (v / mx) * (width - pad.l - pad.r);
   const Y = v => pad.t + (1 - v / my) * (height - pad.t - pad.b);
   const ticks = [0, 0.25, 0.5, 0.75, 1];
+  // Least-squares fit and Pearson correlation
+  let line = null, rTxt = null;
+  if (fit && points.length > 2) {
+    const n = points.length;
+    const sx = points.reduce((a, p) => a + p.x, 0), sy = points.reduce((a, p) => a + p.y, 0);
+    const mxv = sx / n, myv = sy / n;
+    let cov = 0, vx = 0, vy = 0;
+    points.forEach(p => { cov += (p.x - mxv) * (p.y - myv); vx += (p.x - mxv) ** 2; vy += (p.y - myv) ** 2; });
+    if (vx > 0 && vy > 0) {
+      const slope = cov / vx, intc = myv - slope * mxv, r = cov / Math.sqrt(vx * vy);
+      const x0 = 0, x1 = mx, y0 = intc, y1 = intc + slope * mx;
+      line = { x0, y0: Math.max(0, Math.min(my, y0)), x1, y1: Math.max(0, Math.min(my, y1)) };
+      rTxt = `r = ${(Math.round(r * 100) / 100).toFixed(2)}`;
+    }
+  }
   return (
     <div style={{ position: 'relative' }}>
       <svg className="nd-chart" viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', height: 'auto' }}>
@@ -231,6 +246,8 @@ export function Scatter({ points, width = 520, height = 380, xLabel, yLabel, xMa
           <text x={pad.l - 5} y={Y(my * f) + 3} textAnchor="end" fontSize="9" fill="#94a3b8">{fmt1(my * f)}</text>
         </g>))}
         {refLine && <line x1={X(0)} y1={Y(0)} x2={X(Math.min(mx, my))} y2={Y(Math.min(mx, my))} stroke="#cbd5e1" strokeDasharray="4 4" />}
+        {line && <line x1={X(line.x0)} y1={Y(line.y0)} x2={X(line.x1)} y2={Y(line.y1)} stroke={COL.navy} strokeWidth="2" strokeDasharray="6 3" />}
+        {rTxt && <text x={width - pad.r - 4} y={pad.t + 12} textAnchor="end" fontSize="11" fontWeight="700" fill={COL.navy}>{rTxt}</text>}
         {points.map((p, i) => (
           <circle key={i} cx={X(p.x)} cy={Y(p.y)} r={hover === i ? 5 : 2.8} fill={p.c} fillOpacity={hover === i ? 1 : 0.5}
             stroke={hover === i ? '#0f172a' : 'none'} strokeWidth="1"

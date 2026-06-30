@@ -38,7 +38,7 @@ export default function International() {
         <div className="nd-card-title">Vocational training versus youth NEET</div>
         <div className="nd-card-desc">Each dot is a country. Horizontal: share of upper-secondary students in vocational training. Vertical: 18-24 NEET rate. Countries with stronger vocational routes tend to sit lower. The UK (red) combines a middling vocational share with a high NEET rate. Hover any dot for the country.</div>
         <div style={{ maxWidth: 760, margin: '0 auto' }}>
-          <Scatter points={scatterPts} xLabel="Upper secondary in vocational training (%)" yLabel="18-24 NEET rate (%)" xMax={80} yMax={50} />
+          <Scatter points={scatterPts} xLabel="Upper secondary in vocational training (%)" yLabel="18-24 NEET rate (%)" xMax={80} yMax={50} fit />
           <Legend items={[{ label: 'United Kingdom', color: COL.crimson }, { label: 'Other OECD country', color: COL.blue }]} />
         </div>
       </div>
