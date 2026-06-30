@@ -276,6 +276,20 @@ const SchoolProfile = ({ school, allSchools, onClose, onCompare }) => {
             {s.basics_95 != null && <Headline label="5+ Eng & Ma" value={s.basics_95 + '%'} decile={ctx.b95Decile} prev={s.b95_prev} />}
           </div>
         )}
+        {(s.pa != null || s.susp_rate != null) && (
+          <div className="sp-section">
+            <h3 className="sp-section-title">Attendance & behaviour <span style={{ fontWeight: 400, color: '#94a3b8', fontSize: '0.78rem' }}>(2024/25)</span></h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))', gap: 8 }}>
+              {[['Overall absence', s.abs_overall, '%'], ['Persistent absence', s.pa, '%'], ['Suspension rate', s.susp_rate, ' /100']].map(([l, v, u]) => (
+                <div key={l} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: '8px 10px' }}>
+                  <div style={{ fontSize: '1.15rem', fontWeight: 800, color: l === 'Persistent absence' ? '#b91c4a' : '#0f2440' }}>{v == null ? '–' : (Math.round(v * 10) / 10) + u}</div>
+                  <div style={{ fontSize: '0.66rem', color: '#64748b', fontWeight: 600, lineHeight: 1.2 }}>{l}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: 6 }}>Persistent absence is the second-strongest predictor of becoming NEET.</div>
+          </div>
+        )}
         {isSecondary && s.dest_ns != null && (
           <div className="sp-section">
             <h3 className="sp-section-title">Destinations after Year 11 <span style={{ fontWeight: 400, color: '#94a3b8', fontSize: '0.78rem' }}>(2022/23 cohort)</span></h3>

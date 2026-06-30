@@ -16,16 +16,18 @@ const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || 'pk.your_token_here';
 const MAP_STYLES = { light: 'mapbox://styles/mapbox/light-v11', dark: 'mapbox://styles/mapbox/dark-v11', satellite: 'mapbox://styles/mapbox/satellite-streets-v12' };
 const PHASE_COLORS = { Primary: '#2672c0', Secondary: '#b91c4a', Special: '#5b3fa0', Nursery: '#64748b', 'All-through': '#0d7a42', '16 plus': '#64748b' };
 
-// Colour a school dot by its share of leavers with no sustained destination (school-level NEET proxy)
-function neetDotColor(ns) {
-  if (ns == null) return '#cbd5e1';
-  const t = Math.max(0, Math.min(1, ns / 12));
+// Green -> amber -> red ramp for a value scaled to [0,max]
+function rampColor(v, max) {
+  if (v == null) return '#cbd5e1';
+  const t = Math.max(0, Math.min(1, v / max));
   const stops = [[13, 122, 66], [232, 146, 14], [185, 28, 74]];
   const seg = t < 0.5 ? 0 : 1, lt = t < 0.5 ? t / 0.5 : (t - 0.5) / 0.5;
   const a = stops[seg], b = stops[seg + 1];
   const c = a.map((x, i) => Math.round(x + (b[i] - x) * lt));
   return `rgb(${c[0]},${c[1]},${c[2]})`;
 }
+const neetDotColor = (ns) => rampColor(ns, 12);
+const absDotColor = (pa) => rampColor(pa, 45);
 
 let _schoolsData = null, _schoolsByUrn = {}, _decileArrays = {};
 
@@ -160,21 +162,26 @@ const App = ({ initialQuery }) => {
   const [showStats, setShowStats] = useState(false);
   const [showRise, setShowRise] = useState(false);
   const [colorByNeet, setColorByNeet] = useState(false);
+  const [colorByAbsence, setColorByAbsence] = useState(false);
 
   useEffect(() => {
     Promise.all([
       fetch('/schools.json').then(r => r.json()),
       fetch('/ofsted.json').then(r => r.json()).catch(() => ({})),
       fetch('/neet_schools.json').then(r => r.json()).catch(() => ({})),
-    ]).then(([raw, ofsted, neet]) => {
+      fetch('/school_drivers.json').then(r => r.json()).catch(() => ({})),
+    ]).then(([raw, ofsted, neet, drivers]) => {
       initData(raw);
       // Merge KS4 destinations (school-level NEET proxy) by URN
       _schoolsData.forEach(s => {
         const d = neet[String(s.urn)];
-        if (!d) return;
-        s.dest_ns = d.ns; s.dest_edu = d.edu; s.dest_app = d.app; s.dest_work = d.work;
-        s.dest_unk = d.unk; s.dest_cohort = d.cohort; s.dest_adm = d.adm;
-        s.dest_ns_dis = d.ns_dis; s.dest_ns_nondis = d.ns_nondis;
+        if (d) {
+          s.dest_ns = d.ns; s.dest_edu = d.edu; s.dest_app = d.app; s.dest_work = d.work;
+          s.dest_unk = d.unk; s.dest_cohort = d.cohort; s.dest_adm = d.adm;
+          s.dest_ns_dis = d.ns_dis; s.dest_ns_nondis = d.ns_nondis;
+        }
+        const dr = drivers[String(s.urn)];
+        if (dr) { s.pa = dr.pa; s.abs_overall = dr.abs; s.susp_rate = dr.susp; s.perm_rate = dr.perm; }
       });
       // Merge Ofsted sub-judgements by URN
       const GRADE = { 1: 'Outstanding', 2: 'Good', 3: 'Requires improvement', 4: 'Inadequate', 0: 'Not judged' };
@@ -206,9 +213,9 @@ const App = ({ initialQuery }) => {
     features: filtered.filter(s => s.latitude && s.longitude).map(s => ({
       type: 'Feature',
       geometry: { type: 'Point', coordinates: [s.longitude, s.latitude] },
-      properties: { urn: String(s.urn), color: colorByNeet ? neetDotColor(s.dest_ns) : (PHASE_COLORS[s.phase] || '#64748b') },
+      properties: { urn: String(s.urn), color: colorByAbsence ? absDotColor(s.pa) : colorByNeet ? neetDotColor(s.dest_ns) : (PHASE_COLORS[s.phase] || '#64748b') },
     })),
-  }), [filtered, colorByNeet]);
+  }), [filtered, colorByNeet, colorByAbsence]);
 
   const stats = useMemo(() => {
     const a = filtered, total = a.length;
@@ -380,16 +387,30 @@ const App = ({ initialQuery }) => {
       )}
 
       {!showLanding && (
-        <button className="stats-toggle" style={{ top: 116, background: colorByNeet ? '#b91c4a' : undefined, color: colorByNeet ? '#fff' : undefined }} onClick={() => setColorByNeet(v => !v)} title="Colour schools by share of leavers with no sustained destination">
+        <button className="stats-toggle" style={{ top: 116, background: colorByNeet ? '#b91c4a' : undefined, color: colorByNeet ? '#fff' : undefined }} onClick={() => { setColorByNeet(v => !v); setColorByAbsence(false); }} title="Colour schools by share of leavers with no sustained destination">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
           NEET risk
+        </button>
+      )}
+      {!showLanding && (
+        <button className="stats-toggle" style={{ top: 158, background: colorByAbsence ? '#b91c4a' : undefined, color: colorByAbsence ? '#fff' : undefined }} onClick={() => { setColorByAbsence(v => !v); setColorByNeet(false); }} title="Colour schools by persistent absence rate">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
+          Absence
         </button>
       )}
 
       {!showLanding && (
         <div className="map-controls">
           <div className="map-legend">
-            {colorByNeet ? (
+            {colorByAbsence ? (
+              <>
+                <div className="legend-item" style={{ fontWeight: 700, marginBottom: 2 }}>Persistent absence</div>
+                <div className="legend-item"><div className="legend-dot" style={{ background: absDotColor(5) }} />Low</div>
+                <div className="legend-item"><div className="legend-dot" style={{ background: absDotColor(22) }} />Mid</div>
+                <div className="legend-item"><div className="legend-dot" style={{ background: absDotColor(45) }} />High</div>
+                <div className="legend-item"><div className="legend-dot" style={{ background: '#cbd5e1' }} />No data</div>
+              </>
+            ) : colorByNeet ? (
               <>
                 <div className="legend-item" style={{ fontWeight: 700, marginBottom: 2 }}>No sustained destination</div>
                 <div className="legend-item"><div className="legend-dot" style={{ background: neetDotColor(1) }} />Low</div>
