@@ -1,20 +1,27 @@
 import React, { useState, useMemo, useRef } from 'react';
 import Map, { Source, Layer } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { StackedBars, SortTable, RankedBars, TrendLine, COL, pct, fmt0, fmt1, rateColor } from './charts';
+import { StackedBars, SortTable, RankedBars, TrendLine, Scatter, COL, pct, fmt0, fmt1, rateColor } from './charts';
+
+const DRIVERS = { pa: { label: 'Persistent absence', unit: '%', max: 40 }, susp: { label: 'Suspension rate', unit: ' /100', max: 14 }, ehcp: { label: 'EHC plans /1,000', unit: '', max: 160 } };
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || '';
 
+const MAP_MAX = { neetnk: 12, neet: 6, nk: 12, pa: 40, susp: 14, ehcp: 160 };
+const MAP_UNIT = { neetnk: '%', neet: '%', nk: '%', pa: '%', susp: ' /100', ehcp: ' /1,000' };
 function GeoMap({ las, metric, onSelect }) {
   const [hover, setHover] = useState(null);
-  const max = metric === 'neet' ? 6 : 12;
+  const isDriver = metric === 'pa' || metric === 'susp' || metric === 'ehcp';
+  const max = MAP_MAX[metric] || 12;
+  const unit = MAP_UNIT[metric] || '%';
   const geojson = useMemo(() => ({
     type: 'FeatureCollection',
-    features: las.filter(l => l.c).map(l => ({
-      type: 'Feature', geometry: { type: 'Point', coordinates: l.c },
-      properties: { name: l.name, v: l[metric] == null ? 0 : l[metric], size: l.cohort || 0 },
-    })),
-  }), [las, metric]);
+    features: las.filter(l => l.c).map(l => {
+      const raw = isDriver ? (l.drivers && l.drivers[metric]) : l[metric];
+      return { type: 'Feature', geometry: { type: 'Point', coordinates: l.c },
+        properties: { name: l.name, v: raw == null ? 0 : raw, size: l.cohort || 0 } };
+    }),
+  }), [las, metric, isDriver]);
   const paint = {
     'circle-radius': ['interpolate', ['linear'], ['zoom'],
       5, ['interpolate', ['linear'], ['get', 'size'], 0, 3, 3000, 6, 10000, 12, 22000, 18],
@@ -35,7 +42,7 @@ function GeoMap({ las, metric, onSelect }) {
         </Source>
       </Map>
       {hover && (
-        <div style={{ position: 'absolute', left: Math.min(hover.x + 12, 320), top: Math.max(hover.y - 6, 6), background: '#0f172a', color: '#fff', padding: '5px 9px', borderRadius: 7, fontSize: '0.74rem', pointerEvents: 'none', fontWeight: 600, zIndex: 5, whiteSpace: 'nowrap' }}>{hover.name}: {fmt1(hover.v)}%</div>
+        <div style={{ position: 'absolute', left: Math.min(hover.x + 12, 320), top: Math.max(hover.y - 6, 6), background: '#0f172a', color: '#fff', padding: '5px 9px', borderRadius: 7, fontSize: '0.74rem', pointerEvents: 'none', fontWeight: 600, zIndex: 5, whiteSpace: 'nowrap' }}>{hover.name}: {fmt1(hover.v)}{unit}</div>
       )}
     </div>
   );
@@ -79,6 +86,18 @@ function LaDrawer({ la, onClose, onPin, jumpToMap, pinned }) {
       {sendBars.length > 0 && (<>
         <div style={{ fontSize: '0.85rem', fontWeight: 700, margin: '16px 0 6px' }}>NEET / not known by need</div>
         <RankedBars data={sendBars.map(([l, v]) => ({ label: l, value: v, color: rateColor(v, 14) }))} labelWidth={110} max={sendMax} />
+      </>)}
+      {la.drivers && (la.drivers.pa != null || la.drivers.susp != null) && (<>
+        <div style={{ fontSize: '0.85rem', fontWeight: 700, margin: '18px 0 6px' }}>Drivers of NEET risk</div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          {[['Persistent absence', la.drivers.pa, '%'], ['Overall absence', la.drivers.abs, '%'], ['Suspension rate', la.drivers.susp, ' /100'], ['EHC plans', la.drivers.ehcp, ' /1,000']].map(([l, v, u]) => (
+            <div key={l} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 9, padding: '8px 10px' }}>
+              <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f2440' }}>{v == null ? '–' : fmt1(v) + u}</div>
+              <div style={{ fontSize: '0.66rem', color: '#64748b', fontWeight: 600 }}>{l}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ fontSize: '0.68rem', color: '#94a3b8', marginTop: 6 }}>Persistent absence and EHC plans are the two strongest predictors of becoming NEET.</div>
       </>)}
     </div>
   );
@@ -137,6 +156,7 @@ export default function Geography({ data, jumpToMap }) {
   const [filter, setFilter] = useState('all');
   const [metric, setMetric] = useState('neetnk');
   const [selectedLa, setSelectedLa] = useState(null);
+  const [xDriver, setXDriver] = useState('pa');
   const [pinned, setPinned] = useState([]);
   const pin = (la) => setPinned(p => (p.find(x => x.name === la.name) || p.length >= 3) ? p : [...p, la]);
   const unpin = (name) => setPinned(p => p.filter(x => x.name !== name));
@@ -156,9 +176,12 @@ export default function Geography({ data, jumpToMap }) {
     { key: 'neetnk', label: 'NEET / not known', num: true, render: r => <b>{pct(r.neetnk)}</b> },
     { key: 'neet', label: 'NEET', num: true, render: r => pct(r.neet) },
     { key: 'nk', label: 'Not known', num: true, render: r => pct(r.nk) },
+    { key: 'pa', label: 'Persist. absence', num: true, render: r => r.pa == null ? '–' : fmt1(r.pa) + '%' },
+    { key: 'ehcp', label: 'EHCP /1k', num: true, render: r => r.ehcp == null ? '–' : fmt1(r.ehcp) },
     { key: 'annual_change', label: 'Yr change', num: true, render: r => (r.annual_change == null ? '–' : (r.annual_change > 0 ? '+' : '') + fmt1(r.annual_change)) },
     { key: 'cohort', label: 'Cohort', num: true, render: r => fmt0(r.cohort) },
   ];
+  const tableRows = las.map(l => ({ ...l, pa: l.drivers && l.drivers.pa, ehcp: l.drivers && l.drivers.ehcp }));
 
   return (
     <div className="nd-page-inner">
@@ -172,7 +195,10 @@ export default function Geography({ data, jumpToMap }) {
           <div className="nd-chips">
             <button className={'nd-chip' + (metric === 'neetnk' ? ' active' : '')} onClick={() => setMetric('neetnk')}>NEET + not known</button>
             <button className={'nd-chip' + (metric === 'neet' ? ' active' : '')} onClick={() => setMetric('neet')}>NEET only</button>
-            <button className={'nd-chip' + (metric === 'nk' ? ' active' : '')} onClick={() => setMetric('nk')}>Not known only</button>
+            <button className={'nd-chip' + (metric === 'nk' ? ' active' : '')} onClick={() => setMetric('nk')}>Not known</button>
+            <button className={'nd-chip' + (metric === 'pa' ? ' active' : '')} onClick={() => setMetric('pa')}>Persistent absence</button>
+            <button className={'nd-chip' + (metric === 'susp' ? ' active' : '')} onClick={() => setMetric('susp')}>Suspensions</button>
+            <button className={'nd-chip' + (metric === 'ehcp' ? ' active' : '')} onClick={() => setMetric('ehcp')}>EHC plans</button>
           </div>
           <GeoMap las={las} metric={metric} onSelect={(name) => setSelectedLa(byName[name])} />
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6, fontSize: '0.74rem', color: '#64748b' }}>
@@ -196,6 +222,23 @@ export default function Geography({ data, jumpToMap }) {
         </div>
       </div>
 
+      <div className="nd-card" style={{ marginTop: 16 }}>
+        <div className="nd-card-title">What sits behind the risk</div>
+        <div className="nd-card-desc">Each dot is an authority. Vertical axis: NEET or not known. Horizontal axis: the chosen driver. The upward drift is the risk-factor analysis playing out across places, persistent absence and EHC plans are the two strongest predictors of becoming NEET.</div>
+        <div className="nd-chips">
+          {Object.entries(DRIVERS).map(([k, v]) => <button key={k} className={'nd-chip' + (xDriver === k ? ' active' : '')} onClick={() => setXDriver(k)}>{v.label}</button>)}
+        </div>
+        <div style={{ maxWidth: 760, margin: '0 auto' }}>
+          <Scatter
+            points={data.las.filter(l => l.drivers && l.drivers[xDriver] != null && l.neetnk != null).map(l => ({
+              x: l.drivers[xDriver], y: l.neetnk, c: rateColor(l.neetnk, 12), name: l.name,
+              extra: `${DRIVERS[xDriver].label} ${fmt1(l.drivers[xDriver])}${DRIVERS[xDriver].unit} · NEET/NK ${fmt1(l.neetnk)}%`,
+            }))}
+            xLabel={DRIVERS[xDriver].label} yLabel="NEET or not known (%)" xMax={DRIVERS[xDriver].max} yMax={24} />
+        </div>
+        <p className="nd-note">Drivers: persistent and overall absence are state-funded secondary 2024/25; suspension rate per 100 pupils 2024/25; EHC plans per 1,000 school pupils. Sources: DfE absence, suspensions and EHCP releases.</p>
+      </div>
+
       <WhatIf las={data.las} />
       <CompareStrip items={pinned} onRemove={unpin} />
 
@@ -205,7 +248,7 @@ export default function Geography({ data, jumpToMap }) {
         <span style={{ alignSelf: 'center', fontSize: '0.78rem', color: '#94a3b8' }}>{las.length} authorities · click a column to sort, click a row for detail</span>
       </div>
       <div className="nd-card" style={{ padding: '6px 10px', maxHeight: 460, overflowY: 'auto' }}>
-        <SortTable cols={cols} rows={las} initialSort="neetnk" onRowClick={setSelectedLa} />
+        <SortTable cols={cols} rows={tableRows} initialSort="neetnk" onRowClick={setSelectedLa} />
       </div>
 
       <LaDrawer la={selectedLa} onClose={() => setSelectedLa(null)} onPin={pin} jumpToMap={jumpToMap} pinned={pinned} />
