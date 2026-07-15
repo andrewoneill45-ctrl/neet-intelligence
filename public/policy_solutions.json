@@ -1,0 +1,86 @@
+{
+  "title": "Ready for work: draft policy proposals",
+  "source": "Draft policy proposals developed by experts inside and outside government, for the Ready for Work sprint. Costings are indicative and subject to change.",
+  "argument": "Our education system prepares young people for academic study, not work: great for one third, average for another, poor for the rest. We do not build technical education and apprenticeships, and we leave a long tail of poor literacy and numeracy that locks young people out of work. Taken together, these proposals shift the system towards work, across three phases with a final section on system coherence.",
+  "phases": [
+    {
+      "key": "prepare", "label": "Schools (11-16): Prepare",
+      "problem": "The school system delivers what it is designed to deliver: fewer than half of pupils ready for A levels and university. An overstuffed curriculum crowds out work-facing activity, and engagement and attendance fall in Years 7 and 8. Background still shapes literacy and numeracy, with affluent pupils twice as likely to pass English and maths as disadvantaged peers.",
+      "sections": [
+        { "heading": "Curriculum and Key Stage 3", "items": [
+          { "title": "An 80/20 Key Stage 3 curriculum", "text": "Move to ~80% nationally defined and ~20% locally tailored content, making space for work-facing activity, support and stretch, and returning some autonomy to teachers." },
+          { "title": "A statutory KS3 literacy and numeracy check", "text": "Pull good teaching into KS3 where engagement declines, and let schools intervene earlier. An accountability mechanism for the school, not a label for the pupil.", "cost": "£2m to £20m" }
+        ] },
+        { "heading": "Technical pathways at 14-16", "items": [
+          { "title": "A right to technical education at 14", "text": "Mandate tech-award availability in every school (16% offer none) with new double awards, linked to national occupational standards, four or five counting in reformed Progress 8 and Attainment 8. Tech-award takers have 23% lower unauthorised absence." },
+          { "title": "A new regionally-led 'tech' pathway", "text": "English, maths (and science), plus larger tech awards matched to local growth sectors, with clear progression to apprenticeships and T Levels and extended work experience. Ambition: ~25% on the tech pathway, delivered primarily in schools and UTCs, with academic choice retained at 14." },
+          { "title": "Point school improvement at technical education", "text": "Grow technical-specialist MATs, refocus the EEF on 'what is good teaching in technical education?', tilt teacher training, and target regional improvement teams where work readiness is low." }
+        ] },
+        { "heading": "Assessment", "items": [
+          { "title": "Keep GCSEs but reduce the load", "text": "Retain GCSEs (ruling out a Tomlinson-style diploma now) but cut the ~26-exams-in-a-month intensity that drives late disengagement." },
+          { "title": "A longer-term assessment review (~5 years)", "text": "Cover near-universal literacy and numeracy, modular assessment, high-status technical assessment, the role of exams in the age of AI, and digital assessment." }
+        ] },
+        { "heading": "Accountability and early identification", "items": [
+          { "title": "A new 'ready for work' school performance measure", "text": "Replaces the EBacc measure. Weights English and maths, attendance, destinations (including apprenticeships), disadvantage gaps and roll maintenance (to spot off-rolling), alongside reformed Progress 8 and Attainment 8. Extended to special schools and alternative provision." },
+          { "title": "Use data to identify and support at-risk pupils earlier", "text": "Flag risk at the end of primary and at transition using live attendance (cf. Blackpool's RONI), treat models as system-informing, and refresh pupil-premium guidance towards well-evidenced interventions (tutoring, mentoring, attendance support)." }
+        ] }
+      ]
+    },
+    {
+      "key": "careers", "label": "Careers and work experience",
+      "items": [
+        { "title": "Reinvent work experience across the school journey", "text": "Four or more employer contacts make a young person five times less likely to be NEET. Primary: inspiration and exposure with a gender lens. KS3: longer, project-based placements through the 20% flex. KS4: a week (rising to at least two weeks) in a local growth sector with a brief and employer feedback, enhanced for the tech pathway." },
+        { "title": "A digital-first careers offer with targeted face-to-face", "text": "An AI agent to synthesise national and local labour-market, pathway and earnings data for all schools, plus a new entitlement to four face-to-face sessions for at-risk and tech-pathway pupils." },
+        { "title": "Coordinate employer engagement at mayoral level", "text": "A regional structure to sequence and broker primary exposure, work experience, T Level placements and apprenticeships, remove barriers (insurance, DBS, admin) and bias effort towards growth sectors and low-employment areas." }
+      ]
+    },
+    {
+      "key": "transition", "label": "16-18: Transition",
+      "problem": "In the best systems FE is the backbone of the school-to-work transition. In England, underfunding and an academic focus have shrunk FE's technical footprint (44% of FE pupils study GCSEs or A levels, up from 33% in 2015). Apprenticeship take-up is a fraction of the international norm (~6% here vs ~36% in Austria) and there is no clear pre-apprenticeship route.",
+      "sections": [
+        { "heading": "FE", "items": [
+          { "title": "Strategic investments into FE for work readiness", "text": "Tilt FE funding towards 16-18 (pre)apprenticeships, technical routes and Level 4/5. Includes a work-readiness premium for those furthest from work (~£130m for NEETs, ~£430m for all disadvantaged) and full reimbursement for mid-year joiners (~£140m).", "cost": "£270m to £570m" },
+          { "title": "A high-status national/regional FE teacher route", "text": "Bring people with technical and craft experience into teaching, with flexible models (teach one or two days a week alongside industry) and bursaries for hard-to-recruit areas.", "cost": "£10m to £50m" }
+        ] },
+        { "heading": "Wider 16-18 system changes", "items": [
+          { "title": "16-19 devolution aligned to local growth", "text": "A national base funding formula (with disadvantage and work-readiness streams) plus local flex for technical education, provider planning, capital and labour-market alignment. New mayoral accountabilities for 16-24 participation and a strengthened admissions code to stop soft exclusion." },
+          { "title": "Mayoral-led industry technical colleges", "text": "Open new industry-led technical colleges (cf. the National Digital Academy in Manchester, London Screen Academy) focused on specific sector pipelines." },
+          { "title": "Keep A/T/V Levels but boost work experience", "text": "Improve V Levels with a stronger work-experience element, take a pragmatic approach to approving BTECs as single and double V Levels, and maintain or boost T Level funding incentives." },
+          { "title": "Reform the post-16 English and maths resit", "text": "Retain the grade-4 expectation by 18 but review content, mandate teaching hours before re-takes with a default against November resits, and keep modular stepping-stone qualifications for those at grade 2 or below." },
+          { "title": "A pre-apprenticeship / traineeship tier", "text": "A 6-12 month programme (English and maths, employability, a strong placement, sector technical training) with standardised start dates, college-led, for those who underachieved at 16. ~50,000 places.", "cost": "£150m to £250m" }
+        ] }
+      ]
+    },
+    {
+      "key": "deliver", "label": "18-24: Deliver",
+      "problem": "Everyone 18-24 should be earning or learning or both, tilted more to work. The barriers are accountability (no one owns getting provision and incentives right), institutional inertia (default three-year degrees despite strong returns to Level 4/5) and marketisation (duplication, poor quality, undersupply of good-job courses). Work-based routes via the levy are skewed to older, well-qualified workers.",
+      "sections": [
+        { "heading": "Higher education", "items": [
+          { "title": "Reduce subsidies for low-value courses", "text": "Blend Skills England's classification with earnings data (protecting care, creative and public-service roles), cut franchised provision and add English-proficiency requirements for loan support.", "cost": "saves £0.5bn to £1bn" },
+          { "title": "Rebalance towards Levels 4 and 5, the 'missing middle'", "text": "Annual step-off qualifications with credit portability, simpler OfS rules so FE can award Level 4/5, stronger Strategic Authority powers over provision, and accelerating the doubling of Level 4/5 to 2035." }
+        ] },
+        { "heading": "Apprenticeships", "items": [
+          { "title": "Expand youth apprenticeships at scale", "text": "Stretch goal: quadruple new starts from ~172,000 to ~688,000 a year over ten years, towards 25%+ of the 16-24 group (phased alternative: 100,000-150,000 additional). Apprenticeships are the highest-impact intervention for youth employment.", "cost": "£2.5bn to £3.5bn" },
+          { "title": "Treat the levy as a youth training tax", "text": "Delink from individual company accounts; over-fund Levels 2 and 3 (down over 50% in a decade) with greater pastoral support; devolve incentives to mayors to vary by age and local labour market." },
+          { "title": "Deregulate standards while protecting quality", "text": "Slim the number of occupational standards and speed up approval (currently ~12 months) with a fast track for growth priorities; keep modular English and maths as an exit requirement for under-19s and independent end-point assessment." },
+          { "title": "A new adult re-training pot", "text": "Replace over-25 apprenticeships with a skills tax credit or flexible funding for approved employer-led adult retraining, and put apprenticeships at the heart of a new employer charter.", "cost": "£500m to £750m" }
+        ] },
+        { "heading": "System approach", "items": [
+          { "title": "Devolve towards the labour market, reform the national role", "text": "Tilt to more devolution the closer young people get to work. Retain a reformed national role for standards, performance metrics and work-readiness funding formulas. Default to no national bodies, with commissioning firepower at the regional level." }
+        ] }
+      ]
+    }
+  ],
+  "costs": [
+    { "proposal": "Statutory KS3 literacy and numeracy check", "estimate": "£2m to £20m" },
+    { "proposal": "Strategic investments into FE for work readiness", "estimate": "£270m to £570m" },
+    { "proposal": "High-status national/regional FE teacher route", "estimate": "£10m to £50m" },
+    { "proposal": "Pre-apprenticeship / traineeship tier", "estimate": "£150m to £250m" },
+    { "proposal": "Expand youth apprenticeships at scale", "estimate": "£2.5bn to £3.5bn" },
+    { "proposal": "New adult re-training pot (replacing over-25 apprenticeships)", "estimate": "£500m to £750m" }
+  ],
+  "total_costs": "£3.4bn to £5.1bn",
+  "revenue_raisers": [{ "proposal": "Reduce subsidies for low-value courses", "estimate": "-£0.5bn to -£1bn" }],
+  "net_costs": "£2.9bn to £4.1bn",
+  "costs_note": "Illustrative annual estimates when fully rolled out. Does not account for the indirect fiscal benefits of reducing the NEET rate."
+}

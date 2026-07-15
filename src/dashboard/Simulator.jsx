@@ -1,41 +1,31 @@
 import React, { useState } from 'react';
 import { COL, fmt0, fmt1, pct } from './charts';
 
-// Baseline is the 16-24 NEET population (the ultimate target), ONS Q1 2026.
+// Baseline is the 16-24 NEET population (the target), ONS Q1 2026.
 const BASELINE = 1012000;
 const BASE_RATE = 13.5;
 
-// "red" = modelled relative reduction in the 16-24 NEET rate at full national rollout (a steady-state assumption).
-// phase = where the lever mainly bites. ev = the evidence chain to NEET. costBasis = what the cost is.
+const money = (m) => { const a = Math.abs(m), s = m < 0 ? '-' : ''; return a >= 1000 ? s + '£' + (Math.round(a / 100) / 10) + 'bn' : s + '£' + Math.round(a) + 'm'; };
+
+// Levers are the draft policy proposals. costMid = midpoint of the paper's range (£m/yr; negative = revenue raiser).
+// costLabel = the paper's own estimate. red = modelled max relative reduction in the 16-24 NEET rate (a steady-state assumption).
 const LEVERS = [
-  { id: 'tracking', name: 'Improve tracking and ownership (no young person unknown)', phase: 'Across 16-24', red: 0.05, costM: 35,
-    ev: 'About 314,000 16-24s are out of work and out of sight. You cannot re-engage who you cannot see, so a shared record plus a named owner moves part of the "not known" group back into support and education. Modelled conservatively. (Moved here from the Geography tab.)',
-    costBasis: 'Data-sharing infrastructure and local caseworker capacity; mostly a running cost.' },
-  { id: 'attendance', name: 'Tackle persistent absence (attendance support and mentors)', phase: '11-16 flow', red: 0.09, costM: 110,
-    ev: 'Persistent absence in KS4 is the second-strongest NEET risk factor (+10ppt; DfE linked-data analysis). Cutting it should feed through to lower NEET via sustained engagement. Upper-bound assumption, since reducing absence is not the same as removing the association.',
-    costBasis: 'Attendance mentors, family engagement and catch-up; permanent running cost.' },
-  { id: 'screen', name: 'Mandatory Year 7 risk screening + mentoring', phase: '11-16 flow', red: 0.06, costM: 40,
-    ev: 'Targets the two strongest early risk factors (an EHC plan is worth +16 to +20ppt, persistent absence +10ppt). Early identification plus a sustained mentor turns "seen late" into "supported early".',
-    costBasis: 'Near-zero data cost; the spend is mentor and keyworker time.' },
-  { id: 'workex', name: 'Work-experience entitlement (4+ employer contacts)', phase: '11-16 to 16-18', red: 0.12, costM: 90,
-    ev: 'Young people with four or more employer contacts are five times less likely to be NEET (Education & Employers, 2014), via confidence, networks and relevance. Modelled conservatively, a placement costs about £60 for roughly £150 of benefit.',
-    costBasis: 'Employer brokerage capacity and placement coordination; low unit cost.' },
-  { id: 'apprent', name: 'Tilt apprenticeships to young people and rebuild the first rung', phase: '16-18 and 18-24', red: 0.10, costM: 280,
-    ev: 'Apprenticeships are the most effective youth employment route (10 extra in work per 100 supported; about £15 back per £1 for a Level 2 at 19-23). Tilting the levy to the young directly converts NEET risk into earning and learning.',
-    costBasis: 'Higher youth funding bands plus hiring incentives; about £11k per start.' },
-  { id: 'resit', name: 'Reform the post-16 maths and English resit', phase: '16-18', red: 0.04, costM: 35,
-    ev: 'Only about a third improve on the resit (38.8% English, 33.3% maths). Repeated failure corrodes motivation and is a known NEET pathway; stepping-stone routes keep progress without the cliff.',
-    costBasis: 'Qualification redesign and delivery; modest.' },
-  { id: 'vocational', name: 'High-quality vocational pathways at KS4', phase: '11-16 to 16-18', red: 0.05, costM: 130,
-    ev: 'Tech-award takers have 23% lower unauthorised absence (DfE/Ofqual), and absence is the second-strongest NEET predictor (+10ppt). So a real, high-quality vocational route at KS4 should lower NEET through engagement, not dilution.',
-    costBasis: 'Qualification development and co-delivery with FE colleges (capital and revenue).' },
-  { id: 'admissions', name: 'Open up admissions to the best schools', phase: '16-18', red: 0.03, costM: 25,
-    ev: 'Selective schools carry almost no NEET risk (0.85% with no sustained destination vs 5.54% in non-selective). Opening access spreads risk towards institutions best able to absorb it.',
-    costBasis: 'Admissions reform; low direct cost.' },
+  { id: 'ks3', name: 'Statutory KS3 literacy & numeracy check + early identification', phase: 'Prepare (11-16)', red: 0.05, costMid: 11, costLabel: '£2m to £20m', ev: 'Pulls good teaching into KS3 where engagement falls, and flags risk early (cf. Blackpool RONI). Cheap and preventive.' },
+  { id: 'tech14', name: 'A right to technical education at 14', phase: 'Prepare (11-16)', red: 0.06, costMid: 275, costLabel: '£150m to £400m (indicative)', indicative: true, ev: 'Tech awards in every school (16% offer none); tech-award takers have 23% lower unauthorised absence, a top NEET risk factor.' },
+  { id: 'workex', name: 'Reinvent work experience (two-week entitlement)', phase: 'Prepare to Transition', red: 0.12, costMid: 100, costLabel: '£50m to £150m (indicative)', indicative: true, ev: 'Four or more employer contacts: five times less likely to be NEET.' },
+  { id: 'accountability', name: 'A new "ready for work" school performance measure', phase: 'Prepare (11-16)', red: 0.03, costMid: 12, costLabel: 'indicative, low', indicative: true, ev: 'Holds schools to destinations, attendance, disadvantage gaps and off-rolling, not just exams.' },
+  { id: 'fe', name: 'Strategic investments into FE for work readiness', phase: 'Transition (16-18)', red: 0.06, costMid: 420, costLabel: '£270m to £570m', ev: 'A work-readiness premium plus full mid-year reimbursement to re-engage the "bedroom generation".' },
+  { id: 'traineeship', name: 'A pre-apprenticeship / traineeship tier', phase: 'Transition (16-18)', red: 0.05, costMid: 200, costLabel: '£150m to £250m', ev: 'A missing route for those who underachieved at 16; about 50,000 places, college-led.' },
+  { id: 'feteacher', name: 'A high-status FE teacher route', phase: 'Transition (16-18)', red: 0.02, costMid: 30, costLabel: '£10m to £50m', ev: 'Teaching is the biggest in-college factor; brings craft and industry experience into FE.' },
+  { id: 'resit', name: 'Reform the post-16 English and maths resit', phase: 'Transition (16-18)', red: 0.03, costMid: 30, costLabel: '£20m to £40m (indicative)', indicative: true, ev: 'Only about a third improve on resit; default against November resits plus stepping-stone qualifications.' },
+  { id: 'apprent', name: 'Expand youth apprenticeships at scale', phase: 'Deliver (18-24)', red: 0.12, costMid: 3000, costLabel: '£2.5bn to £3.5bn', ev: 'Highest-impact youth intervention (10 in work per 100; about £15 back per £1). Toward 25%+ of the 16-24 group.' },
+  { id: 'he', name: 'Rebalance HE and cut low-value subsidies', phase: 'Deliver (18-24)', red: 0.03, costMid: -750, costLabel: 'saves £0.5bn to £1bn', ev: 'Shift to the Level 4/5 "missing middle"; the saving is a revenue raiser that funds the tilt to work.' },
+  { id: 'adultpot', name: 'New adult re-training pot (replaces over-25 apprenticeships)', phase: 'Deliver (18-24)', red: 0.01, costMid: 625, costLabel: '£500m to £750m', ev: 'Reallocates from over-25 apprenticeships to flexible, employer-led adult retraining.' },
 ];
 
-const RECOMMENDED = { tracking: 80, attendance: 70, screen: 100, workex: 80, apprent: 60, resit: 100, vocational: 50, admissions: 40 };
-const PHASE_COLOR = { 'Across 16-24': COL.navy, '11-16 flow': COL.blue, '11-16 to 16-18': COL.blue, '16-18': '#7c3aed', '16-18 and 18-24': COL.green, '18-24': COL.green };
+const RECOMMENDED = { ks3: 100, tech14: 60, workex: 80, accountability: 100, fe: 70, traineeship: 80, feteacher: 100, resit: 100, apprent: 50, he: 100, adultpot: 60 };
+const PHASE_COLOR = { 'Prepare (11-16)': COL.blue, 'Prepare to Transition': COL.blue, 'Transition (16-18)': '#7c3aed', 'Deliver (18-24)': COL.green };
+const GROUP = { ks3: 'Prevention (flow)', tech14: 'Prevention (flow)', workex: 'Prevention (flow)', accountability: 'Prevention (flow)', fe: 'Transition', traineeship: 'Transition', feteacher: 'Transition', resit: 'Transition', apprent: 'Re-engagement (stock)', he: 'Re-engagement (stock)', adultpot: 'Re-engagement (stock)' };
 
 export default function Simulator() {
   const [intensity, setIntensity] = useState(Object.fromEntries(LEVERS.map(l => [l.id, 0])));
@@ -45,7 +35,7 @@ export default function Simulator() {
   const modelled = Math.round(BASELINE * factor);
   const reduced = BASELINE - modelled;
   const newRate = BASE_RATE * factor;
-  const cost = LEVERS.reduce((a, l) => a + l.costM * (intensity[l.id] / 100), 0);
+  const cost = LEVERS.reduce((a, l) => a + l.costMid * (intensity[l.id] / 100), 0);
   const lifetimeValue = reduced * benefit;
   const anyOn = Object.values(intensity).some(v => v > 0);
 
@@ -55,12 +45,12 @@ export default function Simulator() {
   return (
     <div className="nd-page-inner">
       <h1 className="nd-h1">Intervention simulator</h1>
-      <p className="nd-sub">Build a package of the Section 5 moves and see the modelled effect on the headline target, the 16-24 NEET rate, plus cost and value. This is an illustrative, steady-state model for structured discussion, not a forecast: every effect size is an assumption you can dial with the rollout sliders, and the phase tag shows where each lever mainly bites.</p>
+      <p className="nd-sub">Build a package from the draft policy proposals and see the modelled effect on the target, the 16-24 NEET rate, with costs taken from the proposals paper. An illustrative, steady-state model for discussion, not a forecast: effect sizes are assumptions you can dial, and the phase tag shows where each lever bites. See the full proposals on the Policy solutions tab.</p>
 
       <div className="nd-stats" style={{ gridTemplateColumns: 'repeat(4,1fr)' }}>
         <div className="nd-stat"><div className="accent" style={{ background: COL.crimson }} /><div className="v" style={{ color: COL.crimson }}>{fmt0(modelled)}</div><div className="l">Modelled 16-24 NEET</div><div className="s">{pct(newRate)}, from {fmt0(BASELINE)} ({pct(BASE_RATE)})</div></div>
         <div className="nd-stat"><div className="accent" style={{ background: COL.green }} /><div className="v" style={{ color: COL.green }}>{fmt0(reduced)}</div><div className="l">Young people kept engaged</div><div className="s">{pct(reduced / BASELINE * 100)} of the NEET total</div></div>
-        <div className="nd-stat"><div className="accent" style={{ background: COL.amber }} /><div className="v" style={{ color: COL.amber }}>£{fmt1(cost)}m</div><div className="l">Indicative annual cost</div><div className="s">at the chosen rollout</div></div>
+        <div className="nd-stat"><div className="accent" style={{ background: COL.amber }} /><div className="v" style={{ color: COL.amber }}>{money(cost)}</div><div className="l">Indicative annual cost</div><div className="s">net of revenue raisers</div></div>
         <div className="nd-stat"><div className="accent" style={{ background: COL.navy }} /><div className="v" style={{ color: COL.navy }}>£{fmt1(lifetimeValue / 1e9)}bn</div><div className="l">Lifetime value of reduction</div><div className="s">at £{fmt0(benefit / 1000)}k per young person</div></div>
       </div>
 
@@ -72,14 +62,9 @@ export default function Simulator() {
           <div style={{ width: `${(modelled / BASELINE) * 100}%`, background: COL.crimson, transition: 'width 0.4s' }} />
           <div style={{ width: `${(reduced / BASELINE) * 100}%`, background: COL.green, transition: 'width 0.4s', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '0.72rem', fontWeight: 700 }}>{reduced > BASELINE * 0.05 ? `−${fmt0(reduced)}` : ''}</div>
         </div>
-        <div style={{ display: 'flex', gap: 16, marginTop: 8, fontSize: '0.74rem', color: '#475569' }}>
-          <span><span style={{ display: 'inline-block', width: 10, height: 10, background: COL.crimson, borderRadius: 2, marginRight: 5 }} />Still NEET</span>
-          <span><span style={{ display: 'inline-block', width: 10, height: 10, background: COL.green, borderRadius: 2, marginRight: 5 }} />Moved out of NEET</span>
-        </div>
       </div>
 
       {reduced > 0 && (() => {
-        const GROUP = { attendance: 'Prevention (flow)', screen: 'Prevention (flow)', workex: 'Prevention (flow)', vocational: 'Prevention (flow)', resit: 'Transition', admissions: 'Transition', apprent: 'Re-engagement (stock)', tracking: 'Re-engagement (stock)' };
         const COLG = { 'Prevention (flow)': COL.blue, 'Transition': '#7c3aed', 'Re-engagement (stock)': COL.green };
         const w = {}; LEVERS.forEach(l => { const wt = l.red * intensity[l.id] / 100; if (wt > 0) w[GROUP[l.id]] = (w[GROUP[l.id]] || 0) + wt; });
         const tot = Object.values(w).reduce((a, b) => a + b, 0);
@@ -87,12 +72,12 @@ export default function Simulator() {
         return (
           <div className="nd-card" style={{ marginTop: 14 }}>
             <div className="nd-card-title">Where the reduction comes from: stock vs flow</div>
-            <div className="nd-card-desc">Splitting the modelled reduction by what each lever does, one of the five cross-cutting questions. Prevention stops the next cohort becoming NEET (the flow); re-engagement reaches those already NEET (the stock).</div>
+            <div className="nd-card-desc">Prevention stops the next cohort becoming NEET (the flow); re-engagement reaches those already NEET (the stock).</div>
             <div style={{ height: 26, borderRadius: 8, overflow: 'hidden', display: 'flex', background: '#eef2f7' }}>
               {order.map(g => <div key={g} style={{ width: `${w[g] / tot * 100}%`, background: COLG[g], display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '0.7rem', fontWeight: 700 }}>{w[g] / tot > 0.12 ? `${Math.round(w[g] / tot * 100)}%` : ''}</div>)}
             </div>
             <div style={{ display: 'flex', gap: 14, marginTop: 8, fontSize: '0.74rem', color: '#475569', flexWrap: 'wrap' }}>
-              {order.map(g => <span key={g}><span style={{ display: 'inline-block', width: 10, height: 10, background: COLG[g], borderRadius: 2, marginRight: 5 }} />{g} {Math.round(w[g] / tot * 100)}% (~{fmt0(reduced * w[g] / tot)})</span>)}
+              {order.map(g => <span key={g}><span style={{ display: 'inline-block', width: 10, height: 10, background: COLG[g], borderRadius: 2, marginRight: 5 }} />{g} {Math.round(w[g] / tot * 100)}%</span>)}
             </div>
           </div>
         );
@@ -103,7 +88,7 @@ export default function Simulator() {
         <button className="nd-chip" onClick={() => apply({})} style={{ cursor: 'pointer' }}>Reset all</button>
       </div>
 
-      <h2 className="nd-h2">The levers</h2>
+      <h2 className="nd-h2">The proposals as levers</h2>
       {LEVERS.map(l => (
         <div className="nd-card" key={l.id} style={{ marginBottom: 10, padding: '14px 16px' }}>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
@@ -114,19 +99,19 @@ export default function Simulator() {
             <div style={{ fontSize: '0.78rem', color: '#64748b' }}>Rollout <b style={{ color: '#0f2440' }}>{intensity[l.id]}%</b> · up to <b style={{ color: COL.green }}>−{fmt0(Math.round(BASELINE * l.red))}</b> at full</div>
           </div>
           <input type="range" min="0" max="100" step="5" value={intensity[l.id]} onChange={e => set(l.id, parseInt(e.target.value))} style={{ width: '100%', accentColor: '#0f2440', marginTop: 8 }} />
-          <div style={{ fontSize: '0.74rem', color: '#475569', marginTop: 4, lineHeight: 1.45 }}><b>Evidence chain:</b> {l.ev}</div>
-          <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: 3, lineHeight: 1.4 }}><b>Cost basis:</b> {l.costBasis} Indicative full rollout £{l.costM}m/yr. Max modelled effect −{fmt1(l.red * 100)}% of the 16-24 NEET rate.</div>
+          <div style={{ fontSize: '0.74rem', color: '#475569', marginTop: 4, lineHeight: 1.45 }}><b>Evidence:</b> {l.ev}</div>
+          <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: 3 }}><b>Cost (from the paper):</b> {l.costLabel} · max modelled effect −{fmt1(l.red * 100)}% of the 16-24 NEET rate</div>
         </div>
       ))}
 
       <div className="nd-card" style={{ marginTop: 8 }}>
         <div className="nd-card-title">Assumptions</div>
-        <div style={{ fontSize: '0.84rem', color: '#475569', lineHeight: 1.5, marginBottom: 10 }}>Baseline is the 16-24 NEET population, {fmt0(BASELINE)} ({pct(BASE_RATE)}), ONS Q1 2026, the rate this whole agenda is trying to move. Effects are applied multiplicatively so overlapping levers do not double-count, and they represent the steady state once changes have fed through, the phase tags show where each lever lands first. Adjust the lifetime value of moving one young person out of NEET:</div>
+        <div style={{ fontSize: '0.84rem', color: '#475569', lineHeight: 1.5, marginBottom: 10 }}>Baseline is the 16-24 NEET population, {fmt0(BASELINE)} ({pct(BASE_RATE)}), ONS Q1 2026. Costs are the proposals paper's own indicative annual estimates (midpoints; the full package nets to £2.9bn-£4.1bn). Effects are applied multiplicatively so overlapping levers do not double-count, and represent the steady state once changes feed through. Adjust the lifetime value of moving one young person out of NEET:</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>£{fmt0(benefit / 1000)}k per young person</span>
           <input type="range" min="20000" max="120000" step="2000" value={benefit} onChange={e => setBenefit(parseInt(e.target.value))} style={{ flex: 1, accentColor: '#0f2440' }} />
         </div>
-        <p className="nd-note">Illustrative only. Effect sizes are modelling assumptions informed by the evidence pack, not departmental estimates. Several levers act on the 11-16 flow, so their effect on the 16-24 rate builds over years rather than immediately. The model is intended to structure the question "what would we have to believe for this to be worth it", not to predict outcomes.</p>
+        <p className="nd-note">Illustrative only. The paper notes there is more work to do on costings and projected NEET impact; the effect sizes here are modelling assumptions, not departmental estimates, and several levers act on the 11-16 flow so build over years. The cost figures are the paper's own.</p>
       </div>
 
       {!anyOn && <p className="nd-note">Move a slider, or apply a recommended package, to see the effect.</p>}
